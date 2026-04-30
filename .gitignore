@@ -1,0 +1,19 @@
+# Binaries
+tailwindcss
+*.exe
+*.bin
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
+
+# Build artifacts (QUAN TRỌNG: Không push các file đã nén lên GitHub)
+static/css/*.min.css
+static/js/*.min.js
+static/css/tailwind.css
+
+# Logs
+*.log
