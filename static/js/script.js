@@ -9,6 +9,11 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, webdavEnabled = fal
         uploadAPIKey: uploadAPIKey,
         showAPIKey: false,
         currentTab: 'files',
+        viewMode: localStorage.getItem('viewMode') || 'list',
+        toggleViewMode() {
+            this.viewMode = this.viewMode === 'list' ? 'grid' : 'list';
+            localStorage.setItem('viewMode', this.viewMode);
+        },
         updateAvailable: false,
         changelog: [],
         latestReleaseUrl: '',
@@ -167,7 +172,7 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, webdavEnabled = fal
             }, 15000);
         },
         async downloadSelectedBatch() {
-            const fileIdsToDownload = this.selectedIds.filter(id => {
+            const fileIdsToDownload = this.selectedIds.map(Number).filter(id => {
                 const f = this.files.find(file => file.id === id);
                 return f && !f.is_folder;
             });
@@ -732,6 +737,271 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, webdavEnabled = fal
             const file = this.fileInfoModal.file;
             const ext = file.filename.split('.').pop().toLowerCase();
             const streamUrl = `/api/files/${file.id}/stream`;
+            const langMap = { 'js': 'javascript', 'json': 'json', 'py': 'python', 'go': 'go', 'html': 'markup', 'css': 'css', 'yml': 'yaml', 'yaml': 'yaml', 'sql': 'sql', 'sh': 'bash', 'md': 'markdown' };
+
+            this.fileInfoModal.isPreviewLoading = true;
+            this.fileInfoModal.isMedia = false;
+
+            try {
+                const response = await fetch(streamUrl, { headers: { 'Range': 'bytes=0-262144' } });
+                if (!response.ok && response.status !== 206) throw new Error("Failed to fetch");
+                const content = await response.text();
+                
+                let mediaHtml = '';
+                if (ext === 'md') {
+                    mediaHtml = `<div class="text-preview-container markdown-preview">${this.parseMarkdown(content)}</div>`;
+                } else {
+                    const lang = langMap[ext] || 'none';
+                    mediaHtml = `<div class="text-preview-container"><pre><code class="language-${lang}">${content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre></div>`;
+                }
+                this.fileInfoModal.mediaHtml = mediaHtml;
+                this.fileInfoModal.isMedia = true;
+                
+                if (ext !== 'md' && window.Prism) {
+                    setTimeout(() => Prism.highlightAllUnder(document.querySelector('.text-preview-container')), 50);
+                }
+            } catch (e) {
+                console.error("Preview failed", e);
+                this.fileInfoModal.mediaHtml = `<div class="p-4 text-center text-red-500 text-sm">${this.t('preview_error')}</div>`;
+                this.fileInfoModal.isMedia = true;
+            } finally {
+                this.fileInfoModal.isPreviewLoading = false;
+            }
+        }
+    }
+}
+
+function shareApp(shareToken) {
+    return {
+        shareToken: shareToken,
+        currentTab: 'files',
+        viewMode: localStorage.getItem('viewMode') || 'list',
+        toggleViewMode() {
+            this.viewMode = this.viewMode === 'list' ? 'grid' : 'list';
+            localStorage.setItem('viewMode', this.viewMode);
+        },
+        sortBy: 'name',
+        sortOrder: 'asc',
+        isLoading: false, 
+        isRefreshing: false,
+        isPreparingDownload: false,
+        lang: TeleCloud.lang,
+        toastModal: { show: false, message: '', type: 'success' },
+        showToast(msg, type = 'success') {
+            if (this.toastTimeout) clearTimeout(this.toastTimeout);
+            this.toastModal = { show: true, message: msg, type: type };
+            this.toastTimeout = setTimeout(() => { this.toastModal.show = false; }, 3500);
+        },
+        t(key, params) { return TeleCloud.t(key, params, this.lang); },
+        formatBytes(b, d) { return TeleCloud.formatBytes(b, d); },
+        formatDate(d) { return TeleCloud.formatDate(d, this.lang); },
+        getFileTypeData(f) { return TeleCloud.getFileTypeData(f); },
+        parseMarkdown(t) { return TeleCloud.parseMarkdown(t); },
+        toggleLang() { 
+            this.lang = TeleCloud.toggleLang();
+        },
+        
+        startDownload(fileId) {
+            this.isPreparingDownload = true;
+            document.cookie = "dl_started=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = `/s/${this.shareToken}/file/${fileId}/dl`;
+            document.body.appendChild(iframe);
+            let checkCookie = setInterval(() => {
+                if (document.cookie.includes('dl_started=1')) {
+                    clearInterval(checkCookie);
+                    this.isPreparingDownload = false;
+                    document.cookie = "dl_started=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    setTimeout(() => iframe.remove(), 2000); 
+                }
+            }, 500);
+            setTimeout(() => {
+                if (this.isPreparingDownload) {
+                    clearInterval(checkCookie);
+                    this.isPreparingDownload = false;
+                    iframe.remove();
+                }
+            }, 15000);
+        },
+
+        async downloadSelectedBatch() {
+            const fileIdsToDownload = this.selectedIds.map(Number).filter(id => {
+                const f = this.files.find(file => file.id === id);
+                return f && !f.is_folder;
+            });
+            if (fileIdsToDownload.length === 0) {
+                return;
+            }
+            this.isPreparingDownload = true;
+            document.cookie = "dl_started=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            for (let i = 0; i < fileIdsToDownload.length; i++) {
+                const fileId = fileIdsToDownload[i];
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = `/s/${this.shareToken}/file/${fileId}/dl`;
+                document.body.appendChild(iframe);
+                if (i === 0) {
+                    let checkCookie = setInterval(() => {
+                        if (document.cookie.includes('dl_started=1')) {
+                            clearInterval(checkCookie);
+                            this.isPreparingDownload = false;
+                            document.cookie = "dl_started=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                        }
+                    }, 500);
+                    setTimeout(() => { if (this.isPreparingDownload) this.isPreparingDownload = false; }, 15000);
+                }
+                setTimeout(() => iframe.remove(), 20000);
+                if (i < fileIdsToDownload.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                }
+            }
+            this.selectedIds = [];
+        },
+
+        files: [], 
+        searchQuery: '',
+        currentPage: 1,
+        itemsPerPage: 15,
+        get filteredFiles() {
+            let results = [...this.files];
+            if (this.searchQuery.trim() !== '') {
+                const query = this.searchQuery.toLowerCase();
+                results = results.filter(f => f.filename.toLowerCase().includes(query));
+            }
+
+            return results.sort((a, b) => {
+                if (a.is_folder && !b.is_folder) return -1;
+                if (!a.is_folder && b.is_folder) return 1;
+
+                let valA, valB;
+                if (this.sortBy === 'name') {
+                    valA = a.filename.toLowerCase();
+                    valB = b.filename.toLowerCase();
+                } else if (this.sortBy === 'date') {
+                    valA = new Date(a.created_at).getTime() || 0;
+                    valB = new Date(b.created_at).getTime() || 0;
+                } else if (this.sortBy === 'size') {
+                    valA = a.size || 0;
+                    valB = b.size || 0;
+                }
+
+                if (valA < valB) return this.sortOrder === 'asc' ? -1 : 1;
+                if (valA > valB) return this.sortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
+        },
+        toggleSort(field) {
+            if (this.sortBy === field) {
+                this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                this.sortBy = field;
+                this.sortOrder = 'asc';
+            }
+        },
+        get totalPages() {
+            return Math.ceil(this.filteredFiles.length / this.itemsPerPage) || 1;
+        },
+        get displayedFiles() {
+            const start = (this.currentPage - 1) * this.itemsPerPage;
+            const end = start + this.itemsPerPage;
+            return this.filteredFiles.slice(start, end);
+        },
+        currentPath: '/', 
+        openMenuId: null,
+        selectedIds: [], 
+
+        plyrInstance: null,
+        fileInfoModal: { show: false, file: null, typeName: '', svgIcon: '', bgColor: '', isMedia: false, mediaHtml: '', isLarge: false, isPreviewLoading: false, needsLoad: false, tooLarge: false },
+        contextMenu: { show: false, x: 0, y: 0, file: null },
+        
+        init() { 
+            this.fetchFiles(false);
+        },
+        openContextMenu(e, file) {
+            if (!file) return; 
+            this.contextMenu.file = file;
+            let x = e.clientX; let y = e.clientY;
+            if (window.innerWidth - x < 210) x = window.innerWidth - 210;
+            if (window.innerHeight - y < 250) y = window.innerHeight - 250;
+            this.contextMenu.x = x;
+            this.contextMenu.y = y;
+            this.contextMenu.show = true;
+        },
+        closeContextMenu() { this.contextMenu.show = false; },
+        getBreadcrumbs() { return this.currentPath === '/' ? [] : this.currentPath.split('/').filter(Boolean); },
+        navigateToFolder(folderName) { this.currentPath = this.currentPath === '/' ? '/' + folderName : this.currentPath + '/' + folderName; this.fetchFiles(); },
+        navigateToIndex(index) { this.currentPath = '/' + this.getBreadcrumbs().slice(0, index + 1).join('/'); this.fetchFiles(); },
+        navigateTo(path) { this.currentPath = path; this.fetchFiles(); },
+        async fetchFiles(silentLoad = false) {
+            if (!silentLoad && (!this.files || this.files.length === 0)) { this.isLoading = true; } else { this.isRefreshing = true; }
+            try {
+                const res = await fetch(`/s/${this.shareToken}/api/files?path=${encodeURIComponent(this.currentPath)}`);
+                const data = await res.json();
+                this.files = data.files || [];
+                this.selectedIds = this.selectedIds.filter(id => this.files.some(f => f.id === id));
+                if (!silentLoad) { this.searchQuery = ''; this.currentPage = 1; } else { if (this.currentPage > this.totalPages) this.currentPage = Math.max(1, this.totalPages); }
+            } catch (e) { console.error('Fetch error', e); } finally { this.isLoading = false; this.isRefreshing = false; }
+        },
+        
+        closeFileInfoModal() {
+            this.fileInfoModal.show = false;
+            if (this.plyrInstance) { this.plyrInstance.destroy(); this.plyrInstance = null; }
+            setTimeout(() => { if (!this.fileInfoModal.show) { this.fileInfoModal.isMedia = false; this.fileInfoModal.mediaHtml = ''; this.fileInfoModal.isLarge = false; this.fileInfoModal.isPreviewLoading = false; this.fileInfoModal.needsLoad = false; this.fileInfoModal.tooLarge = false; } }, 300);
+        },
+        async showFileInfo(file) {
+            if (file.is_folder) return;
+            const typeData = this.getFileTypeData(file.filename);
+            const ext = file.filename.split('.').pop().toLowerCase();
+            const imgExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+            const videoExts = ['mp4', 'webm', 'ogg', 'mov', 'mkv'];
+            const audioExts = ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'opus'];
+            const textExts = ['txt', 'md', 'log', 'json', 'js', 'py', 'go', 'html', 'css', 'yml', 'yaml', 'sql', 'sh', 'conf', 'ini'];
+            
+            const mimeTypes = { 'mp4': 'video/mp4', 'webm': 'video/webm', 'ogg': 'video/ogg', 'mov': 'video/mp4', 'mkv': 'video/webm', 'mp3': 'audio/mpeg', 'wav': 'audio/wav', 'flac': 'audio/flac', 'm4a': 'audio/mp4', 'opus': 'audio/ogg' };
+            let isMedia = false; let mediaHtml = ''; let playerTarget = null;
+            let isLarge = false;
+            const streamUrl = `/s/${this.shareToken}/file/${file.id}/stream`;
+            const thumbUrl = `/s/${this.shareToken}/file/${file.id}/thumb`;
+            
+            if (imgExts.includes(ext)) { 
+                mediaHtml = '<img src="' + streamUrl + '" alt="' + file.filename + '" class="max-h-64 object-contain rounded-[1rem] w-full shadow-md">'; 
+                isMedia = true; 
+            } else if (videoExts.includes(ext)) {
+                const typeAttr = mimeTypes[ext] || 'video/mp4';
+                mediaHtml = '<div class="w-full relative z-20 rounded-[1rem] bg-black shadow-md"><video id="index-tele-player" playsinline controls preload="none" ' + (file.has_thumb ? 'data-poster="' + thumbUrl + '"' : '') + '><source src="' + streamUrl + '" type="' + typeAttr + '"></video></div>';
+                isMedia = true; playerTarget = { el: '#index-tele-player', type: 'video' };
+            } else if (audioExts.includes(ext)) {
+                const typeAttr = mimeTypes[ext] || 'audio/mpeg';
+                mediaHtml = '<div class="w-full relative z-20 rounded-[1rem] p-2 sm:p-4 bg-slate-100 dark:bg-slate-800/50 shadow-inner">' + (file.has_thumb ? '<img src="' + thumbUrl + '" class="w-32 h-32 mx-auto rounded-2xl mb-4 object-cover shadow-md">' : '<div class="w-32 h-32 mx-auto rounded-2xl mb-4 flex items-center justify-center bg-white dark:bg-slate-700 shadow-sm"><i class="fa-solid fa-music text-5xl text-slate-300 dark:text-slate-500"></i></div>') + '<audio id="index-tele-player" controls preload="none"><source src="' + streamUrl + '" type="' + typeAttr + '"></audio></div>';
+                isMedia = true; playerTarget = { el: '#index-tele-player', type: 'audio' };
+            } else if (textExts.includes(ext)) {
+                this.fileInfoModal = { show: true, file: file, typeName: typeData.n, svgIcon: typeData.i, bgColor: typeData.c, isMedia: false, mediaHtml: '', isLarge: true, isPreviewLoading: false, needsLoad: false, tooLarge: false };
+                
+                if (file.size > 10 * 1024 * 1024) {
+                    this.fileInfoModal.tooLarge = true;
+                } else {
+                    this.fileInfoModal.needsLoad = true;
+                }
+                return;
+            }
+            
+            this.fileInfoModal = { show: true, file: file, typeName: typeData.n, svgIcon: typeData.i, bgColor: typeData.c, isMedia: isMedia, mediaHtml: mediaHtml, isLarge: isLarge, isPreviewLoading: false };
+            if (playerTarget) {
+                setTimeout(() => {
+                    if (this.plyrInstance) this.plyrInstance.destroy();
+                    const plyrOpts = playerTarget.type === 'audio'
+                        ? { controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'settings'], settings: ['speed'], speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] } }
+                        : { ratio: '16:9', controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'settings', 'fullscreen'], settings: ['speed'], speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] } };
+                    this.plyrInstance = new Plyr(playerTarget.el, plyrOpts);
+                }, 50);
+            }
+        },
+        async loadFilePreview() {
+            this.fileInfoModal.needsLoad = false;
+            const file = this.fileInfoModal.file;
+            const ext = file.filename.split('.').pop().toLowerCase();
+            const streamUrl = `/s/${this.shareToken}/file/${file.id}/stream`;
             const langMap = { 'js': 'javascript', 'json': 'json', 'py': 'python', 'go': 'go', 'html': 'markup', 'css': 'css', 'yml': 'yaml', 'yaml': 'yaml', 'sql': 'sql', 'sh': 'bash', 'md': 'markdown' };
 
             this.fileInfoModal.isPreviewLoading = true;

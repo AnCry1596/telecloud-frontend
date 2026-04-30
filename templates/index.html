@@ -148,13 +148,11 @@
                     </button>
                 </template>
 
-                <template x-if="!contextMenu.file.is_folder">
-                    <button @click="toggleShare(contextMenu.file); closeContextMenu()"
-                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-medium transition-colors">
-                        <i class="fa-solid fa-link fa-fw text-emerald-500"></i>
-                        <span x-text="contextMenu.file.share_token ? t('revoke_link') : t('share_link')"></span>
-                    </button>
-                </template>
+                <button @click="toggleShare(contextMenu.file); closeContextMenu()"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-medium transition-colors">
+                    <i class="fa-solid fa-link fa-fw text-emerald-500"></i>
+                    <span x-text="contextMenu.file.share_token ? t('revoke_link') : t('share_link')"></span>
+                </button>
 
                 <template x-if="contextMenu.file.share_token">
                     <div class="space-y-1">
@@ -162,10 +160,12 @@
                             class="w-full flex items-center gap-3 px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-medium transition-colors text-xs">
                             <i class="fa-solid fa-share-nodes fa-fw"></i> <span x-text="t('copy_share_link')"></span>
                         </button>
-                        <button @click="copyShareLink(contextMenu.file, 'direct'); closeContextMenu()"
-                            class="w-full flex items-center gap-3 px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-medium transition-colors text-xs">
-                            <i class="fa-solid fa-copy fa-fw"></i> <span x-text="t('copy_direct_link')"></span>
-                        </button>
+                        <template x-if="!contextMenu.file.is_folder">
+                            <button @click="copyShareLink(contextMenu.file, 'direct'); closeContextMenu()"
+                                class="w-full flex items-center gap-3 px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-medium transition-colors text-xs">
+                                <i class="fa-solid fa-copy fa-fw"></i> <span x-text="t('copy_direct_link')"></span>
+                            </button>
+                        </template>
                     </div>
                 </template>
 
@@ -284,11 +284,13 @@
                             <i class="fa-solid fa-share-nodes text-base mb-0.5"></i>
                             <span x-text="t('copy_share_link')"></span>
                         </button>
-                        <button @click="copyShareLink(fileInfoModal.file, 'direct')"
-                            class="flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 text-blue-600 font-medium transition-colors text-xs">
-                            <i class="fa-solid fa-copy text-base mb-0.5"></i>
-                            <span x-text="t('copy_direct_link')"></span>
-                        </button>
+                        <template x-if="!fileInfoModal.file?.is_folder">
+                            <button @click="copyShareLink(fileInfoModal.file, 'direct')"
+                                class="flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 text-blue-600 font-medium transition-colors text-xs">
+                                <i class="fa-solid fa-copy text-base mb-0.5"></i>
+                                <span x-text="t('copy_direct_link')"></span>
+                            </button>
+                        </template>
                     </div>
                 </template>
 
@@ -401,8 +403,8 @@
             <div x-show="currentTab === 'files'"
                 class="flex flex-col shrink-0 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-white/5 z-30">
                 <!-- Search Bar -->
-                <div class="px-3 md:px-6 py-3">
-                    <div class="relative group">
+                <div class="px-3 md:px-6 py-3 flex items-center gap-2">
+                    <div class="relative group flex-1">
                         <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
                             <i
                                 class="fa-solid fa-magnifying-glass text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
@@ -416,9 +418,14 @@
                             <i class="fa-solid fa-circle-xmark text-lg"></i>
                         </button>
                     </div>
+                    <button @click="toggleViewMode()" 
+                            class="p-2.5 px-3 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 bg-white/60 hover:bg-white dark:bg-slate-900/60 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/50 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 shrink-0"
+                            :title="viewMode === 'list' ? 'Grid View' : 'List View'">
+                        <i class="fa-solid text-lg" :class="viewMode === 'list' ? 'fa-table-cells-large' : 'fa-list'"></i>
+                    </button>
                 </div>
                 <!-- Unified Table Header -->
-                <div x-show="files.length > 0 && !isLoading"
+                <div x-show="files.length > 0 && !isLoading && viewMode === 'list'"
                     class="grid grid-cols-12 gap-4 px-4 md:px-10 py-3 text-[10px] md:text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-t border-slate-200/50 dark:border-white/5">
                     <div class="col-span-8 md:col-span-5 flex items-center gap-3 cursor-pointer select-none group" @click="toggleSort('name')">
                         <input type="checkbox" class="w-4 h-4 accent-blue-600 cursor-pointer rounded" @click.stop @change="
@@ -838,114 +845,153 @@
                         </div>
 
                         <div class="w-full text-left border-collapse relative">
-                            <div class="space-y-1.5 mt-2">
+                            <div class="mt-2 pb-10" :class="viewMode === 'list' ? 'space-y-1.5' : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4 px-1'">
                                 <template x-for="file in displayedFiles" :key="file.id">
-                                    <div class="group relative grid grid-cols-12 gap-4 px-3 md:px-4 py-2 md:py-3 items-center rounded-2xl hover:bg-white/60 dark:hover:bg-slate-800/50 transition-all border border-transparent"
-                                        :class="selectedIds.includes(file.id) ? 'bg-blue-50/80 dark:bg-blue-900/20 border-blue-200 dark:border-blue-500/30' : ''"
-                                        @contextmenu.prevent="openContextMenu($event, file)"
-                                        x-transition.opacity.duration.300ms>
-
-                                        <div class="col-span-8 md:col-span-5 flex items-center gap-3 w-full truncate">
-                                            <input type="checkbox" :value="file.id" x-model="selectedIds"
-                                                class="w-4 h-4 accent-blue-600 cursor-pointer rounded">
-
-                                            <div class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl shadow-sm shrink-0 cursor-pointer group-hover:scale-105 transition-transform"
-                                                @click="if(file.is_folder) { navigateToFolder(file.filename) } else { showFileInfo(file) }">
-                                                <template x-if="file.is_folder">
-                                                    <i
-                                                        class="fa-solid fa-folder text-amber-400 text-xl md:text-2xl drop-shadow-sm"></i>
-                                                </template>
-                                                <template x-if="!file.is_folder">
-                                                    <div
-                                                        class="w-full h-full relative flex items-center justify-center">
-                                                        <template x-if="file.has_thumb">
-                                                            <img :src="`/api/files/${file.id}/thumb`" loading="lazy"
-                                                                alt="thumb"
-                                                                class="w-full h-full object-cover rounded-xl shadow-sm">
+                                    <div class="contents">
+                                        <!-- List View Template -->
+                                        <template x-if="viewMode === 'list'">
+                                            <div class="group relative grid grid-cols-12 gap-4 px-3 md:px-4 py-2 md:py-3 items-center rounded-2xl hover:bg-white/60 dark:hover:bg-slate-800/50 transition-all border border-transparent"
+                                                :class="selectedIds.includes(file.id) ? 'bg-blue-50/80 dark:bg-blue-900/20 border-blue-200 dark:border-blue-500/30' : ''"
+                                                @contextmenu.prevent="openContextMenu($event, file)"
+                                                x-transition.opacity.duration.300ms>
+                                                
+                                                <div class="col-span-8 md:col-span-5 flex items-center gap-3 w-full truncate">
+                                                    <input type="checkbox" :value="file.id" x-model.number="selectedIds"
+                                                        class="w-4 h-4 accent-blue-600 cursor-pointer rounded">
+                                                        
+                                                    <div class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl shadow-sm shrink-0 cursor-pointer group-hover:scale-105 transition-transform"
+                                                        @click="if(file.is_folder) { navigateToFolder(file.filename) } else { showFileInfo(file) }">
+                                                        <template x-if="file.is_folder">
+                                                            <i class="fa-solid fa-folder text-amber-400 text-xl md:text-2xl drop-shadow-sm"></i>
                                                         </template>
-
-                                                        <template x-if="!file.has_thumb">
-                                                            <div x-html="getFileTypeData(file.filename).i"
-                                                                class="scale-75 opacity-80"
-                                                                :class="getFileTypeData(file.filename).c.split(' ')[1]">
+                                                        <template x-if="!file.is_folder">
+                                                            <div class="w-full h-full relative flex items-center justify-center">
+                                                                <template x-if="file.has_thumb">
+                                                                    <img :src="`/api/files/${file.id}/thumb`" loading="lazy" alt="thumb" class="w-full h-full object-cover rounded-xl shadow-sm">
+                                                                </template>
+                                                                <template x-if="!file.has_thumb">
+                                                                    <div x-html="getFileTypeData(file.filename).i" class="scale-75 opacity-80" :class="getFileTypeData(file.filename).c.split(' ')[1]"></div>
+                                                                </template>
                                                             </div>
                                                         </template>
                                                     </div>
-                                                </template>
+                                                    <div class="truncate flex-1 cursor-pointer flex flex-col" @click="if(file.is_folder) { navigateToFolder(file.filename) } else { showFileInfo(file) }">
+                                                        <div class="flex items-center gap-2">
+                                                            <p class="text-sm md:text-base font-semibold text-slate-800 dark:text-slate-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" x-text="file.filename"></p>
+                                                            <template x-if="file.share_token">
+                                                                <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 text-[9px] font-bold tracking-wider uppercase">Public</span>
+                                                            </template>
+                                                        </div>
+                                                        <p class="text-xs text-slate-400 md:hidden mt-0.5" x-text="file.is_folder ? t('folder') : formatBytes(file.size)"></p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="hidden md:block col-span-3 text-sm font-medium text-slate-500 dark:text-slate-400" x-text="formatDate(file.created_at)"></div>
+                                                <div class="hidden md:block col-span-2 text-sm font-medium text-slate-500 dark:text-slate-400" x-text="file.is_folder ? t('folder') : formatBytes(file.size)"></div>
+                                                
+                                                <div class="col-span-4 md:col-span-2 flex justify-end md:justify-center relative" @click.outside="if (openMenuId === file.id) openMenuId = null">
+                                                    <button @click.stop="openMenuId = openMenuId === file.id ? null : file.id" class="px-3 py-2 text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:outline-none">
+                                                        <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
+                                                    </button>
+                                                    <div x-show="openMenuId === file.id" x-cloak x-transition.origin.top.right class="glass-menu absolute right-0 top-10 mt-1 w-52 rounded-2xl p-1.5 z-[60] text-sm text-left">
+                                                        <template x-if="file.share_token">
+                                                            <div class="space-y-1 mb-1">
+                                                                <button @click="copyShareLink(file, 'regular'); openMenuId = null" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium transition-colors text-xs">
+                                                                    <i class="fa-solid fa-share-nodes fa-fw"></i> <span x-text="t('copy_share_link')"></span>
+                                                                </button>
+                                                                <template x-if="!file.is_folder">
+                                                                    <button @click="copyShareLink(file, 'direct'); openMenuId = null" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium transition-colors text-xs">
+                                                                        <i class="fa-solid fa-copy fa-fw"></i> <span x-text="t('copy_direct_link')"></span>
+                                                                    </button>
+                                                                </template>
+                                                            </div>
+                                                        </template>
+                                                        
+                                                        <button @click="toggleShare(file); openMenuId = null" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-medium transition-colors">
+                                                            <i class="fa-solid fa-link fa-fw text-emerald-500"></i>
+                                                            <span x-text="file.share_token ? t('revoke_link') : t('share_link')"></span>
+                                                        </button>
+                                                        
+                                                        <div class="h-px bg-slate-200 dark:bg-slate-700/50 my-1 mx-2"></div>
+                                                        <button @click="renameFile(file); openMenuId = null" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-medium transition-colors"><i class="fa-solid fa-pen fa-fw text-slate-400"></i> <span x-text="t('rename')"></span></button>
+                                                        <button @click="copyToClipboard('move', [file.id]); openMenuId = null" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-medium transition-colors"><i class="fa-solid fa-folder-tree fa-fw text-slate-400"></i> <span x-text="t('rename')"></span></button>
+                                                        <button @click="copyToClipboard('copy', [file.id]); openMenuId = null" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-medium transition-colors"><i class="fa-solid fa-copy fa-fw text-slate-400"></i> <span x-text="t('copy')"></span></button>
+                                                        <button @click="deleteFile(file.id); openMenuId = null" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 text-red-600 dark:text-red-400 font-medium transition-colors"><i class="fa-solid fa-trash fa-fw"></i> <span x-text="t('delete')"></span></button>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="truncate flex-1 cursor-pointer flex flex-col"
-                                                @click="if(file.is_folder) { navigateToFolder(file.filename) } else { showFileInfo(file) }">
-                                                <div class="flex items-center gap-2">
-                                                    <p class="text-sm md:text-base font-semibold text-slate-800 dark:text-slate-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
-                                                        x-text="file.filename"></p>
-                                                    <template x-if="file.share_token">
-                                                        <span
-                                                            class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 text-[9px] font-bold tracking-wider uppercase">Public</span>
+                                        </template>
+
+                                        <!-- Grid View Template -->
+                                        <template x-if="viewMode === 'grid'">
+                                            <div class="group relative flex flex-col p-4 items-center text-center gap-3 rounded-2xl hover:bg-white/60 dark:hover:bg-slate-800/50 transition-all border border-transparent"
+                                                :class="selectedIds.includes(file.id) ? 'bg-blue-50/80 dark:bg-blue-900/20 border-blue-200 dark:border-blue-500/30 shadow-md scale-[1.02]' : 'shadow-sm bg-white/40 dark:bg-slate-800/30 border-slate-200/50 dark:border-slate-700/50'"
+                                                @contextmenu.prevent="openContextMenu($event, file)"
+                                                x-transition.opacity.duration.300ms>
+                                        
+                                                <div class="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity" :class="selectedIds.includes(file.id) ? '!opacity-100' : ''">
+                                                    <input type="checkbox" :value="file.id" x-model.number="selectedIds" class="w-4 h-4 accent-blue-600 cursor-pointer rounded">
+                                                </div>
+                                                
+                                                <div class="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity" :class="openMenuId === file.id ? '!opacity-100' : ''"
+                                                    @click.outside="if (openMenuId === file.id) openMenuId = null">
+                                                    <button @click.stop="openMenuId = openMenuId === file.id ? null : file.id"
+                                                        class="p-1.5 text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-colors focus:outline-none">
+                                                        <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
+                                                    </button>
+                                                    <div x-show="openMenuId === file.id" x-cloak x-transition.origin.top.right class="glass-menu absolute right-0 top-8 mt-1 w-52 rounded-2xl p-1.5 z-[60] text-sm text-left">
+                                                        <template x-if="file.share_token">
+                                                            <div class="space-y-1 mb-1">
+                                                                <button @click="copyShareLink(file, 'regular'); openMenuId = null" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium transition-colors text-xs">
+                                                                    <i class="fa-solid fa-share-nodes fa-fw"></i> <span x-text="t('copy_share_link')"></span>
+                                                                </button>
+                                                                <template x-if="!file.is_folder">
+                                                                    <button @click="copyShareLink(file, 'direct'); openMenuId = null" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium transition-colors text-xs">
+                                                                        <i class="fa-solid fa-copy fa-fw"></i> <span x-text="t('copy_direct_link')"></span>
+                                                                    </button>
+                                                                </template>
+                                                            </div>
+                                                        </template>
+                                                        <button @click="toggleShare(file); openMenuId = null" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-medium transition-colors">
+                                                            <i class="fa-solid fa-link fa-fw text-emerald-500"></i>
+                                                            <span x-text="file.share_token ? t('revoke_link') : t('share_link')"></span>
+                                                        </button>
+                                                        <div class="h-px bg-slate-200 dark:bg-slate-700/50 my-1 mx-2"></div>
+                                                        <button @click="renameFile(file); openMenuId = null" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-medium transition-colors"><i class="fa-solid fa-pen fa-fw text-slate-400"></i> <span x-text="t('rename')"></span></button>
+                                                        <button @click="copyToClipboard('move', [file.id]); openMenuId = null" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-medium transition-colors"><i class="fa-solid fa-folder-tree fa-fw text-slate-400"></i> <span x-text="t('rename')"></span></button>
+                                                        <button @click="copyToClipboard('copy', [file.id]); openMenuId = null" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-medium transition-colors"><i class="fa-solid fa-copy fa-fw text-slate-400"></i> <span x-text="t('copy')"></span></button>
+                                                        <button @click="deleteFile(file.id); openMenuId = null" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 text-red-600 dark:text-red-400 font-medium transition-colors"><i class="fa-solid fa-trash fa-fw"></i> <span x-text="t('delete')"></span></button>
+                                                    </div>
+                                                </div>
+                                        
+                                                <div class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-sm shrink-0 cursor-pointer group-hover:scale-105 transition-transform mt-3"
+                                                    @click="if(file.is_folder) { navigateToFolder(file.filename) } else { showFileInfo(file) }">
+                                                    <template x-if="file.is_folder">
+                                                        <i class="fa-solid fa-folder text-amber-400 text-4xl md:text-5xl drop-shadow-sm"></i>
+                                                    </template>
+                                                    <template x-if="!file.is_folder">
+                                                        <div class="w-full h-full relative flex items-center justify-center">
+                                                            <template x-if="file.has_thumb">
+                                                                <img :src="`/api/files/${file.id}/thumb`" loading="lazy" alt="thumb" class="w-full h-full object-cover rounded-2xl shadow-sm">
+                                                            </template>
+                                                            <template x-if="!file.has_thumb">
+                                                                <div x-html="getFileTypeData(file.filename).i" class="scale-[1.5] md:scale-[2] opacity-80" :class="getFileTypeData(file.filename).c.split(' ')[1]"></div>
+                                                            </template>
+                                                        </div>
                                                     </template>
                                                 </div>
-                                                <p class="text-xs text-slate-400 md:hidden mt-0.5"
-                                                    x-text="file.is_folder ? t('folder') : formatBytes(file.size)"></p>
-                                            </div>
-                                        </div>
-
-                                        <div class="hidden md:block col-span-3 text-sm font-medium text-slate-500 dark:text-slate-400"
-                                            x-text="formatDate(file.created_at)"></div>
-
-                                        <div class="hidden md:block col-span-2 text-sm font-medium text-slate-500 dark:text-slate-400"
-                                            x-text="file.is_folder ? t('folder') : formatBytes(file.size)"></div>
-
-                                        <div class="col-span-4 md:col-span-2 flex justify-end md:justify-center relative"
-                                            @click.outside="if (openMenuId === file.id) openMenuId = null">
-                                            <button @click.stop="openMenuId = openMenuId === file.id ? null : file.id"
-                                                class="px-3 py-2 text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:outline-none">
-                                                <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
-                                            </button>
-                                            <div x-show="openMenuId === file.id" x-cloak x-transition.origin.top.right
-                                                class="glass-menu absolute right-0 top-10 mt-1 w-52 rounded-2xl p-1.5 z-[60] text-sm text-left">
+                                        
+                                                <div class="w-full flex flex-col items-center gap-1 px-1 cursor-pointer"
+                                                    @click="if(file.is_folder) { navigateToFolder(file.filename) } else { showFileInfo(file) }">
+                                                    <p class="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate w-full group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" x-text="file.filename" :title="file.filename"></p>
+                                                    <p class="text-[10px] md:text-xs text-slate-400 font-medium" x-text="file.is_folder ? t('folder') : formatBytes(file.size)"></p>
+                                                </div>
+                                                
                                                 <template x-if="file.share_token">
-                                                    <div class="space-y-1 mb-1">
-                                                        <button
-                                                            @click="copyShareLink(file, 'regular'); openMenuId = null"
-                                                            class="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium transition-colors text-xs">
-                                                            <i class="fa-solid fa-share-nodes fa-fw"></i> <span
-                                                                x-text="t('copy_share_link')"></span>
-                                                        </button>
-                                                        <button
-                                                            @click="copyShareLink(file, 'direct'); openMenuId = null"
-                                                            class="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium transition-colors text-xs">
-                                                            <i class="fa-solid fa-copy fa-fw"></i> <span
-                                                                x-text="t('copy_direct_link')"></span>
-                                                        </button>
-                                                    </div>
+                                                    <span class="absolute bottom-2 right-2 px-1.5 py-0.5 rounded border border-emerald-500/20 bg-emerald-500/10 text-emerald-500 text-[8px] font-bold uppercase tracking-wider">Public</span>
                                                 </template>
-                                                <template x-if="!file.is_folder">
-                                                    <button @click="toggleShare(file); openMenuId = null"
-                                                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-medium transition-colors">
-                                                        <i class="fa-solid fa-link fa-fw text-emerald-500"></i>
-                                                        <span
-                                                            x-text="file.share_token ? t('revoke_link') : t('share_link')"></span>
-                                                    </button>
-                                                </template>
-                                                <div class="h-px bg-slate-200 dark:bg-slate-700/50 my-1 mx-2"></div>
-                                                <button @click="renameFile(file); openMenuId = null"
-                                                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-medium transition-colors"><i
-                                                        class="fa-solid fa-pen fa-fw text-slate-400"></i> <span
-                                                        x-text="t('rename')"></span></button>
-                                                <button @click="copyToClipboard('move', [file.id]); openMenuId = null"
-                                                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-medium transition-colors"><i
-                                                        class="fa-solid fa-folder-tree fa-fw text-slate-400"></i> <span
-                                                        x-text="t('rename')"></span></button>
-                                                <button @click="copyToClipboard('copy', [file.id]); openMenuId = null"
-                                                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-medium transition-colors"><i
-                                                        class="fa-solid fa-copy fa-fw text-slate-400"></i> <span
-                                                        x-text="t('copy')"></span></button>
-
-                                                <button @click="deleteFile(file.id); openMenuId = null"
-                                                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 text-red-600 dark:text-red-400 font-medium transition-colors"><i
-                                                        class="fa-solid fa-trash fa-fw"></i> <span
-                                                        x-text="t('delete')"></span></button>
                                             </div>
-                                        </div>
+                                        </template>
                                     </div>
                                 </template>
 
