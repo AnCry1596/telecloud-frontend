@@ -1,7 +1,9 @@
-function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, webdavEnabled = false, webdavUser = '', webdavPassword = '', uploadAPIEnabled = false, uploadAPIKey = '') {
+function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, storageUsed = 0, webdavEnabled = false, webdavUser = '', webdavPassword = '', uploadAPIEnabled = false, uploadAPIKey = '') {
     return {
         isLoggedIn: initialIsLoggedIn,
         maxUploadSizeMB: initialMaxUploadSizeMB,
+        isAdmin: isAdmin,
+        storageUsed: storageUsed,
         webdavEnabled: webdavEnabled,
         webdavUser: webdavUser,
         webdavPassword: webdavPassword,
@@ -23,6 +25,9 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, webdavEnabled = fal
         password: '', 
         confirmPassword: '',
         settingsForm: { oldPassword: '', newPassword: '', confirmPassword: '' },
+        users: [],
+        userForm: { username: '', password: '' },
+        isCreatingUser: false,
         isLoading: false, 
         isRefreshing: false,
         isPreparingDownload: false,
@@ -136,6 +141,53 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, webdavEnabled = fal
                 }
             } catch(e) {
                 this.showToast(this.t('status_error'), 'error');
+            }
+        },
+        async fetchUsers() {
+            try {
+                const res = await fetch('/api/users');
+                const data = await res.json();
+                if (res.ok) {
+                    this.users = data.users || [];
+                }
+            } catch (e) {
+                console.error("Fetch users error", e);
+            }
+        },
+        async createUser() {
+            this.isCreatingUser = true;
+            try {
+                let fd = new FormData();
+                fd.append('username', this.userForm.username);
+                fd.append('password', this.userForm.password);
+                const res = await fetch('/api/users', { method: 'POST', body: fd, headers: { 'X-CSRF-Token': TeleCloud.getCsrfToken() } });
+                if (res.ok) {
+                    this.showToast(this.t('toast_user_created'), 'success');
+                    this.userForm = { username: '', password: '' };
+                    this.fetchUsers();
+                } else {
+                    const data = await res.json();
+                    this.showToast(this.handleCommonError(data.error, 'status_error'), 'error');
+                }
+            } catch (e) {
+                this.showToast(this.t('conn_error'), 'error');
+            } finally {
+                this.isCreatingUser = false;
+            }
+        },
+        async deleteUser(username) {
+            const confirmed = await this.customConfirm(this.t('delete_user_confirm_title'), this.t('delete_user_confirm_msg', {u: username}), true);
+            if (!confirmed) return;
+            try {
+                const res = await fetch(`/api/users/${username}`, { method: 'DELETE', headers: { 'X-CSRF-Token': TeleCloud.getCsrfToken() } });
+                if (res.ok) {
+                    this.showToast(this.t('toast_user_deleted'), 'success');
+                    this.fetchUsers();
+                } else {
+                    this.showToast(this.t('status_error'), 'error');
+                }
+            } catch (e) {
+                this.showToast(this.t('conn_error'), 'error');
             }
         },
         toggleLang() { 

@@ -144,6 +144,9 @@ const TeleCloud = {
             setup_title: 'Chào mừng',
             setup_desc: 'Tạo tài khoản quản trị viên để tiếp tục',
             create_account: 'Tạo tài khoản',
+            err_folder_exists: 'Thư mục ứng với tên này đã tồn tại trong thư mục gốc!',
+            err_username_exists: 'Tên tài khoản này đã tồn tại!',
+            err_invalid_username_format: 'Tên tài khoản chỉ được chứa chữ cái, số, dấu chấm, gạch dưới và gạch ngang (không có dấu và dấu cách)!',
             toast_pass_mismatch: 'Mật khẩu mới không khớp!',
             toast_pass_changed: 'Đổi mật khẩu thành công!',
             err_incorrect_old_password: 'Mật khẩu cũ không chính xác!',
@@ -206,7 +209,20 @@ const TeleCloud = {
             curl_async: 'cURL — Bất đồng bộ (Background)',
             response_share: 'Kết quả trả về — Với share=public',
             response_async: 'Kết quả trả về — Với async=true',
-            upload_api_param_async: 'Đặt "true" để upload chạy ngầm và nhận task_id ngay lập tức (Không áp dụng nếu share=public)'
+            upload_api_param_async: 'Đặt "true" để upload chạy ngầm và nhận task_id ngay lập tức (Không áp dụng nếu share=public)',
+            files_count: '{n} tệp',
+            total_storage: 'Tổng dung lượng hệ thống',
+            storage_used: 'Dung lượng đã dùng',
+            // Users Management
+            users: 'Thành viên',
+            users_management: 'Quản lý thành viên',
+            users_desc: 'Quản lý các tài khoản con và quyền hạn của chúng.',
+            create_child_account: 'Tạo tài khoản con',
+            delete_user_confirm_title: 'Xóa tài khoản',
+            delete_user_confirm_msg: 'Bạn có chắc chắn muốn xóa tài khoản {u}? Thư mục của họ vẫn sẽ được giữ lại.',
+            toast_user_created: 'Đã tạo tài khoản thành công!',
+            toast_user_deleted: 'Đã xóa tài khoản!',
+            no_child_accounts: 'Chưa có tài khoản con nào.'
         },
         en: {
             home: 'File Manager',
@@ -345,6 +361,9 @@ const TeleCloud = {
             setup_title: 'Welcome',
             setup_desc: 'Create an admin account to continue',
             create_account: 'Create Account',
+            err_folder_exists: 'A folder with this name already exists in root directory!',
+            err_username_exists: 'Username already exists!',
+            err_invalid_username_format: 'Username can only contain letters, numbers, dots, underscores and hyphens!',
             toast_pass_mismatch: 'New passwords do not match!',
             toast_pass_changed: 'Password changed successfully!',
             err_incorrect_old_password: 'Incorrect old password!',
@@ -407,7 +426,20 @@ const TeleCloud = {
             curl_async: 'cURL — Asynchronous (Background)',
             response_share: 'Response — With share=public',
             response_async: 'Response — With async=true',
-            upload_api_param_async: 'Set "true" to upload in background and get task_id immediately (Ignored if share=public)'
+            upload_api_param_async: 'Set "true" to upload in background and get task_id immediately (Ignored if share=public)',
+            files_count: '{n} files',
+            total_storage: 'Total System Storage',
+            storage_used: 'Storage Used',
+            // Users Management
+            users: 'Members',
+            users_management: 'Members Management',
+            users_desc: 'Manage child accounts and their permissions.',
+            create_child_account: 'Create Child Account',
+            delete_user_confirm_title: 'Delete Account',
+            delete_user_confirm_msg: 'Are you sure you want to delete {u}? Their folder will remain.',
+            toast_user_created: 'Account created successfully!',
+            toast_user_deleted: 'Account deleted!',
+            no_child_accounts: 'No child accounts.'
         }
     },
 

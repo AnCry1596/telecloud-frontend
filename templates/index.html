@@ -39,7 +39,7 @@
 
 <body
     class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 h-full relative overflow-hidden flex flex-col transition-colors duration-500"
-    x-data="cloudApp(true, {{ .max_upload_size_mb }}, {{ if .webdav_enabled }}true{{ else }}false{{ end }}, '{{ .webdav_user }}', '{{ .webdav_password }}', {{ if .upload_api_enabled }}true{{ else }}false{{ end }}, '{{ .upload_api_key }}')"
+    x-data="cloudApp(true, {{ .max_upload_size_mb }}, {{ if .is_admin }}true{{ else }}false{{ end }}, {{ .storage_used }}, {{ if .webdav_enabled }}true{{ else }}false{{ end }}, '{{ .webdav_user }}', '{{ .webdav_password }}', {{ if .upload_api_enabled }}true{{ else }}false{{ end }}, '{{ .upload_api_key }}')"
     @dragover.prevent="dragOver = true" @dragleave.prevent="dragOver = false" @drop.prevent="handleDrop($event)">
 
     <div class="blob-1"></div>
@@ -338,6 +338,13 @@
                             :class="currentTab === 'settings' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'">
                             <i class="fa-solid fa-gear mr-1.5"></i><span x-text="t('settings')"></span>
                         </button>
+                        {{ if .is_admin }}
+                        <button @click="currentTab = 'users'; fetchUsers()"
+                            class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all"
+                            :class="currentTab === 'users' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'">
+                            <i class="fa-solid fa-users mr-1.5"></i><span x-text="t('users')"></span>
+                        </button>
+                        {{ end }}
                         <button @click="currentTab = 'changelog'" x-show="updateAvailable" x-cloak
                             class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all relative"
                             :class="currentTab === 'changelog' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'">
@@ -465,8 +472,9 @@
                             account and preferences.</p>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="flex flex-col gap-6">
+                    <div class="grid grid-cols-1 gap-6" :class="isAdmin ? 'md:grid-cols-2' : ''">
+                        <div class="flex flex-col gap-6" x-show="isAdmin">
+                            {{ if .is_admin }}
                             <!-- WebDAV Card -->
                             <div class="glass-panel p-6 rounded-3xl border border-white/10">
                                 <div class="flex items-center justify-between mb-4">
@@ -733,9 +741,10 @@
                                     </div>
                                 </div>
                             </div>
+                            {{ end }}
                         </div>
 
-                        <div class="flex flex-col gap-6">
+                        <div class="flex flex-col gap-6" :class="!isAdmin ? 'max-w-xl mx-auto w-full' : ''">
                             <div class="glass-panel p-6 rounded-3xl border border-white/10 h-max">
                                 <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
                                     <i class="fa-solid fa-key text-blue-500"></i>
@@ -771,6 +780,11 @@
                                     <i class="fa-brands fa-github text-sm"></i>
                                     <span class="font-bold">GitHub</span>
                                 </a>
+                                <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700/50">
+                                    <i class="fa-solid fa-hard-drive text-blue-500"></i>
+                                    <span class="font-medium text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400" x-text="t('storage_used')"></span>
+                                    <span class="text-slate-700 dark:text-slate-200 font-bold text-[10px]" x-text="formatBytes(storageUsed)"></span>
+                                </div>
                                 <p class="font-medium text-center">TeleCloud <span
                                         class="font-bold text-slate-700 dark:text-slate-300"
                                         x-text="TeleCloud.version"></span> &copy; 2026 <span
@@ -779,6 +793,77 @@
                         </div>
                     </div>
                 </div>
+
+                {{ if .is_admin }}
+                <div x-show="currentTab === 'users'" x-cloak class="max-w-3xl mx-auto py-4 md:py-6 animate-fade-in-up">
+                    <div class="bg-indigo-600 rounded-[1.5rem] p-6 text-white mb-6 shadow-xl shadow-indigo-500/20 relative overflow-hidden">
+                        <div class="absolute -right-10 -top-10 opacity-10 rotate-12">
+                            <i class="fa-solid fa-users text-[10rem]"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-2 relative z-10" x-text="t('users_management')"></h2>
+                        <p class="text-sm text-indigo-100 relative z-10 max-w-lg" x-text="t('users_desc')"></p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex flex-col gap-6">
+                            <div class="glass-panel p-6 rounded-3xl border border-white/10">
+                                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                    <i class="fa-solid fa-user-plus text-blue-500"></i>
+                                    <span x-text="t('create_child_account')"></span>
+                                </h3>
+                                <form @submit.prevent="createUser" class="space-y-4">
+                                    <div>
+                                        <input type="text" x-model="userForm.username" :placeholder="t('username')" required
+                                            class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    </div>
+                                    <div>
+                                        <input type="password" autocomplete="new-password" x-model="userForm.password" :placeholder="t('password')" required
+                                            class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    </div>
+                                    <button type="submit"
+                                        class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-semibold transition-colors flex justify-center items-center gap-2" :disabled="isCreatingUser">
+                                        <i class="fa-solid fa-plus" x-show="!isCreatingUser"></i>
+                                        <i class="fa-solid fa-spinner fa-spin" x-show="isCreatingUser" x-cloak></i>
+                                        <span x-text="t('create_account')"></span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-6">
+                            <div class="glass-panel p-6 rounded-3xl border border-white/10 h-max">
+                                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                    <i class="fa-solid fa-users text-emerald-500"></i>
+                                    <span x-text="t('users')"></span>
+                                </h3>
+                                <div class="space-y-3">
+                                    <template x-for="user in users" :key="user.id">
+                                        <div class="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                                            <div class="flex flex-col">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-bold text-sm" x-text="user.username"></span>
+                                                    <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-500 font-medium" x-text="t('files_count', {n: user.file_count})"></span>
+                                                </div>
+                                                <div class="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
+                                                    <span x-text="formatBytes(user.total_size)"></span>
+                                                    <span>&bull;</span>
+                                                    <span x-text="formatDate(user.created_at)"></span>
+                                                </div>
+                                            </div>
+                                            <button @click="deleteUser(user.username)" class="text-red-500 hover:text-red-600 p-2 transition-colors">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </template>
+                                    <template x-if="users.length === 0">
+                                        <div class="text-center text-sm text-slate-500 dark:text-slate-400 py-4 italic" x-text="t('no_child_accounts')"></div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{ end }}
 
                 <div x-show="currentTab === 'changelog'" x-cloak class="max-w-3xl mx-auto py-4 md:py-6 animate-fade-in-up">
                     <div class="bg-indigo-600 rounded-[1.5rem] p-6 text-white mb-6 shadow-xl shadow-indigo-500/20 relative overflow-hidden">
@@ -1081,11 +1166,10 @@
                 </div>
 
                 <div class="flex items-center gap-6">
-                    <div class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-hard-drive"></i>
-                        <span><span x-text="t('capacity') + ':'"></span> <span
-                                class="text-slate-700 dark:text-slate-300 font-semibold"
-                                x-text="t('unlimited')"></span></span>
+                    <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700/50">
+                        <i class="fa-solid fa-hard-drive text-blue-500"></i>
+                        <span class="font-medium text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400" x-text="t('storage_used')"></span>
+                        <span class="text-slate-700 dark:text-slate-200 font-bold" x-text="formatBytes(storageUsed)"></span>
                     </div>
                     <div class="flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition-colors">
                         <a href="https://github.com/dabeecao/telecloud-go" target="_blank"
@@ -1112,6 +1196,15 @@
                 <i class="fa-solid fa-house text-xl"></i><span class="text-[10px] font-semibold"
                     x-text="t('home')"></span>
             </button>
+
+            {{ if .is_admin }}
+            <button @click="currentTab = 'users'; fetchUsers()"
+                class="flex-1 flex flex-col items-center gap-1.5 py-2 transition-colors"
+                :class="currentTab === 'users' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'">
+                <i class="fa-solid fa-users text-xl"></i><span class="text-[10px] font-semibold"
+                    x-text="t('users')"></span>
+            </button>
+            {{ end }}
 
             <div class="flex-1 flex justify-center relative -top-6" x-data="{ showMobileAdd: false }"
                 @click.outside="showMobileAdd = false">

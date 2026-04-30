@@ -1,6 +1,6 @@
 # TeleCloud Frontend Assets
 
-This repository contains the source code for the TeleCloud web interface.
+This repository contains the source code for the [TeleCloud](https://github.com/dabeecao/telecloud-go) web interface.
 
 ## 📁 Repository Structure
 - `templates/`: Go HTML templates.
