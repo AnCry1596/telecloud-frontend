@@ -250,7 +250,19 @@ const TeleCloud = {
             passkey_error: 'Thao tác Passkey thất bại',
             passkey_not_supported: 'Trình duyệt không hỗ trợ Passkey',
             passkey_name_prompt: 'Nhập tên cho Passkey này (ví dụ: iPhone của tôi, MacBook...):',
-            passkey_renamed: 'Đã đổi tên Passkey thành công'
+            passkey_renamed: 'Đã đổi tên Passkey thành công',
+            passkey_default_name: 'Khóa bảo mật #{id}',
+            passkey_settings: 'Cấu hình Passkey',
+            passkey_rpid: 'Relying Party ID (Domain)',
+            passkey_origins: 'Allowed Origins (URLs)',
+            passkey_rpid_help: 'Tên miền của bạn (ví dụ: cloud.thuthuatjb.com). Bỏ trống để dùng localhost.',
+            passkey_origins_help: 'Các URL được phép truy cập, phân cách bằng dấu phẩy. Phải bao gồm giao thức và port nếu có (ví dụ: https://cloud.thuthuatjb.com).',
+            auto_detect: 'Tự động nhận diện',
+            toast_passkey_settings_saved: 'Đã lưu cấu hình Passkey!',
+            auto_detect_save: 'Tự động nhận diện & Lưu',
+            err_passkey_auth_failed: 'Xác thực Passkey thất bại',
+            err_passkey_reg_failed: 'Đăng ký Passkey thất bại',
+            err_passkey_not_configured: 'Hệ thống chưa được cấu hình Passkey. Vui lòng cấu hình trong phần Cài đặt của tài khoản Admin.'
         },
         en: {
             home: 'File Manager',
@@ -284,7 +296,7 @@ const TeleCloud = {
             capacity: 'Remaining Capacity',
             date: 'Upload Date',
             status: 'Status',
-            public: 'Public',
+            public: 'Công khai',
             private: 'Private',
             cancel: 'Cancel',
             confirm: 'Confirm',
@@ -494,7 +506,19 @@ const TeleCloud = {
             passkey_error: 'Passkey action failed',
             passkey_not_supported: 'Passkeys are not supported on this browser',
             passkey_name_prompt: 'Enter a name for this Passkey (e.g., My iPhone, MacBook...):',
-            passkey_renamed: 'Passkey renamed successfully'
+            passkey_renamed: 'Passkey renamed successfully',
+            passkey_default_name: 'Passkey #{id}',
+            passkey_settings: 'Passkey Configuration',
+            passkey_rpid: 'Relying Party ID (Domain)',
+            passkey_origins: 'Allowed Origins (URLs)',
+            passkey_rpid_help: 'Your domain name (e.g., cloud.example.com). Leave empty for localhost.',
+            passkey_origins_help: 'Allowed URLs, comma-separated. Must include protocol and port if applicable (e.g., https://cloud.example.com).',
+            auto_detect: 'Auto-detect',
+            toast_passkey_settings_saved: 'Passkey settings saved!',
+            auto_detect_save: 'Auto-detect & Save',
+            err_passkey_auth_failed: 'Passkey authentication failed',
+            err_passkey_reg_failed: 'Passkey registration failed',
+            err_passkey_not_configured: 'Passkey is not configured on this system. Please configure this in the Admin account settings.'
         }
     },
 

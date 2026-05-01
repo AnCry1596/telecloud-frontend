@@ -25,11 +25,6 @@
     <link rel="stylesheet" href="/static/css/prism.min.css?v={{ .version }}">
     <script src="/static/js/prism.min.js?v={{ .version }}"></script>
 
-    <div id="app-config" class="hidden"
-        data-webdav-user="{{ .webdav_user }}"
-        data-webdav-pass="{{ .webdav_password }}"
-        data-api-key="{{ .upload_api_key }}"></div>
-
     <!-- SEO & Social Meta Tags -->
     <meta name="description" content="TeleCloud OS - Cloud file management via Telegram">
     <meta property="og:title" content="TeleCloud OS">
@@ -44,7 +39,7 @@
 
 <body
     class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 h-full relative overflow-hidden flex flex-col transition-colors duration-500"
-    x-data="cloudApp(true, {{ .max_upload_size_mb }}, {{ if .is_admin }}true{{ else }}false{{ end }}, {{ .storage_used }}, {{ if .webdav_enabled }}true{{ else }}false{{ end }}, document.getElementById('app-config').dataset.webdavUser, document.getElementById('app-config').dataset.webdavPass, {{ if .upload_api_enabled }}true{{ else }}false{{ end }}, document.getElementById('app-config').dataset.apiKey, {{ if .global_webdav_enabled }}true{{ else }}false{{ end }}, {{ if .global_api_enabled }}true{{ else }}false{{ end }})"
+    x-data="cloudApp(true, {{ .max_upload_size_mb }}, {{ if .is_admin }}true{{ else }}false{{ end }}, {{ .storage_used }}, {{ if .webdav_enabled }}true{{ else }}false{{ end }}, '{{ .webdav_user }}', '{{ .webdav_password }}', {{ if .upload_api_enabled }}true{{ else }}false{{ end }}, '{{ .upload_api_key }}', {{ if .global_webdav_enabled }}true{{ else }}false{{ end }}, {{ if .global_api_enabled }}true{{ else }}false{{ end }}, '{{ .webauthn_rpid }}', '{{ .webauthn_rporigin }}')"
     @dragover.prevent="dragOver = true" @dragleave.prevent="dragOver = false" @drop.prevent="handleDrop($event)">
 
     <div class="blob-1"></div>
@@ -759,6 +754,31 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Passkey Config Card (Admin Only) -->
+                            <div class="glass-panel p-6 rounded-3xl border border-white/10" x-show="isAdmin" x-cloak>
+                                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                     <i class="fa-solid fa-gear text-blue-500"></i>
+                                     <span x-text="t('passkey_settings')"></span>
+                                 </h3>
+                                 <div class="space-y-4">
+                                     <div class="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50">
+                                         <div class="flex flex-col gap-1">
+                                             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400" x-text="t('passkey_rpid')"></span>
+                                             <span class="text-sm font-mono text-slate-700 dark:text-slate-200" x-text="webauthnRPID || 'Not configured'"></span>
+                                         </div>
+                                         <div class="mt-3 flex flex-col gap-1">
+                                             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400" x-text="t('passkey_origins')"></span>
+                                             <span class="text-[11px] font-mono text-slate-500 dark:text-slate-400 break-all" x-text="webauthnOrigins || 'Not configured'"></span>
+                                         </div>
+                                     </div>
+                                     <button @click="autoDetectAndSaveWebAuthn"
+                                         class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20">
+                                         <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                         <span x-text="t('auto_detect_save')"></span>
+                                     </button>
+                                 </div>
+                            </div>
                         </div>
 
                         <div class="flex flex-col gap-6">
@@ -784,11 +804,11 @@
                                                     <i class="fa-solid fa-fingerprint"></i>
                                                 </div>
                                                 <div>
-                                                    <div class="text-[11px] font-bold text-slate-700 dark:text-slate-200" x-text="pk.name || ('Passkey #' + pk.id)"></div>
+                                                    <div class="text-[11px] font-bold text-slate-700 dark:text-slate-200" x-text="pk.name || t('passkey_default_name', {id: pk.id})"></div>
                                                     <div class="text-[10px] text-slate-400" x-text="formatDate(pk.created_at)"></div>
                                                 </div>
                                             </div>
-                                            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                            <div class="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
                                                 <button @click="renamePasskey(pk.id, pk.name)" class="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-all" :title="t('rename')">
                                                     <i class="fa-solid fa-pen-to-square"></i>
                                                 </button>
@@ -1026,7 +1046,7 @@
                                                         <div class="flex items-center gap-2">
                                                             <p class="text-sm md:text-base font-semibold text-slate-800 dark:text-slate-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" x-text="file.filename"></p>
                                                             <template x-if="file.share_token">
-                                                                <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 text-[9px] font-bold tracking-wider uppercase">Public</span>
+                                                                <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 text-[9px] font-bold tracking-wider uppercase" x-text="t('public')">Public</span>
                                                             </template>
                                                         </div>
                                                         <p class="text-xs text-slate-400 md:hidden mt-0.5" x-text="file.is_folder ? t('folder') : formatBytes(file.size)"></p>
@@ -1076,11 +1096,11 @@
                                                 @contextmenu.prevent="openContextMenu($event, file)"
                                                 x-transition.opacity.duration.300ms>
                                         
-                                                <div class="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity" :class="selectedIds.includes(file.id) ? '!opacity-100' : ''">
+                                                <div class="absolute top-2 left-2 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity" :class="selectedIds.includes(file.id) ? '!opacity-100' : ''">
                                                     <input type="checkbox" :value="file.id" x-model.number="selectedIds" class="w-4 h-4 accent-blue-600 cursor-pointer rounded">
                                                 </div>
                                                 
-                                                <div class="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity" :class="openMenuId === file.id ? '!opacity-100' : ''"
+                                                <div class="absolute top-1.5 right-1.5 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity" :class="openMenuId === file.id ? '!opacity-100' : ''"
                                                     @click.outside="if (openMenuId === file.id) openMenuId = null">
                                                     <button @click.stop="openMenuId = openMenuId === file.id ? null : file.id"
                                                         class="p-1.5 text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-colors focus:outline-none">
@@ -1135,7 +1155,7 @@
                                                 </div>
                                                 
                                                 <template x-if="file.share_token">
-                                                    <span class="absolute bottom-2 right-2 px-1.5 py-0.5 rounded border border-emerald-500/20 bg-emerald-500/10 text-emerald-500 text-[8px] font-bold uppercase tracking-wider">Public</span>
+                                                    <span class="absolute bottom-2 right-2 px-1.5 py-0.5 rounded border border-emerald-500/20 bg-emerald-500/10 text-emerald-500 text-[8px] font-bold uppercase tracking-wider" x-text="t('public')">Public</span>
                                                 </template>
                                             </div>
                                         </template>

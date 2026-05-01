@@ -1,4 +1,4 @@
-function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, storageUsed = 0, webdavEnabled = false, webdavUser = '', webdavPassword = '', uploadAPIEnabled = false, uploadAPIKey = '', globalWebdavEnabled = true, globalAPIEnabled = true) {
+function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, storageUsed = 0, webdavEnabled = false, webdavUser = '', webdavPassword = '', uploadAPIEnabled = false, uploadAPIKey = '', globalWebdavEnabled = true, globalAPIEnabled = true, webauthnRPID = '', webauthnOrigins = '') {
     return {
         isLoggedIn: initialIsLoggedIn,
         maxUploadSizeMB: initialMaxUploadSizeMB,
@@ -14,6 +14,8 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, sto
         showAPIKey: false,
         childAPIKey: '',
         showChildAPIKey: false,
+        webauthnRPID: webauthnRPID,
+        webauthnOrigins: webauthnOrigins,
         currentTab: 'files',
         viewMode: localStorage.getItem('viewMode') || 'list',
         toggleViewMode() {
@@ -285,6 +287,29 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, sto
                 this.showToast(this.t('conn_error'), 'error');
             }
         },
+        async saveWebAuthnSettings() {
+            let fd = new FormData();
+            fd.append('rpid', this.webauthnRPID);
+            fd.append('origins', this.webauthnOrigins);
+            try {
+                let res = await fetch('/api/settings/webauthn', { method: 'POST', body: fd, headers: { 'X-CSRF-Token': TeleCloud.getCsrfToken() } });
+                if (res.ok) {
+                    this.showToast(this.t('toast_passkey_settings_saved'), 'success');
+                } else {
+                    this.showToast(this.t('status_error'), 'error');
+                }
+            } catch (e) {
+                this.showToast(this.t('conn_error'), 'error');
+            }
+        },
+        autoDetectWebAuthn() {
+            this.webauthnRPID = window.location.hostname;
+            this.webauthnOrigins = window.location.origin;
+        },
+        async autoDetectAndSaveWebAuthn() {
+            this.autoDetectWebAuthn();
+            await this.saveWebAuthnSettings();
+        },
 
         toggleLang() { 
             this.lang = TeleCloud.toggleLang();
@@ -446,6 +471,10 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, sto
                 this.initWebSocket();
                 this.fetchPasskeys();
                 
+                if (!this.isAdmin) {
+                    this.fetchChildAPIKey();
+                }
+
                 if (!this.isAdmin) {
                     this.fetchChildAPIKey();
                 }
@@ -704,7 +733,7 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, sto
                 } else if (result.status === 'success') {
                     window.location.href = '/';
                 } else {
-                    throw new Error(result.error || 'Authentication failed');
+                    throw new Error(result.error || this.t('err_passkey_auth_failed'));
                 }
             } catch (err) {
                 console.error(err);
@@ -1059,6 +1088,11 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, sto
         },
 
         async registerPasskey() {
+            if (!this.webauthnRPID) {
+                this.showToast(this.t('err_passkey_not_configured'), 'error');
+                if (this.isAdmin) this.currentTab = 'settings';
+                return;
+            }
             if (!window.PublicKeyCredential) {
                 this.showToast(this.t('passkey_not_supported'), 'error');
                 return;
@@ -1110,7 +1144,7 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, sto
                     this.showToast(this.t('passkey_registered'), 'success');
                     this.fetchPasskeys();
                 } else {
-                    throw new Error(result.error || 'Registration failed');
+                    throw new Error(result.error || this.t('err_passkey_reg_failed'));
                 }
             } catch (err) {
                 console.error(err);
