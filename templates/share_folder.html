@@ -28,8 +28,7 @@
     <!-- SEO & Social Meta Tags -->
     <meta name="description" content="Shared Folder: {{ .filename }}">
     <meta property="og:title" content="{{ .filename }} - TeleCloud Share">
-    <meta property="og:description"
-        content="View and download files from this shared folder.">
+    <meta property="og:description" content="View and download files from this shared folder.">
     <meta property="og:type" content="website">
     <meta property="og:image" content="/static/favicon.ico">
     <meta name="twitter:card" content="summary">
@@ -97,26 +96,32 @@
                 x-html="fileInfoModal.mediaHtml"></div>
 
             <div x-show="fileInfoModal.needsLoad" class="w-full mt-4 mb-2">
-                <div class="w-full p-6 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
+                <div
+                    class="w-full p-6 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
                     <i class="fa-solid fa-file-lines text-4xl text-slate-300 dark:text-slate-600 mb-3"></i>
                     <p class="text-sm text-slate-500 mb-4 text-center" x-text="t('preview_manual')"></p>
-                    <button @click="loadFilePreview()" class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-500/20 active:scale-95">
+                    <button @click="loadFilePreview()"
+                        class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-500/20 active:scale-95">
                         <span x-text="t('load_preview')"></span>
                     </button>
                 </div>
             </div>
 
             <div x-show="fileInfoModal.tooLarge" class="w-full mt-4 mb-2">
-                <div class="w-full p-6 flex flex-col items-center justify-center bg-red-50 dark:bg-red-500/10 rounded-2xl border border-dashed border-red-200 dark:border-red-500/30">
+                <div
+                    class="w-full p-6 flex flex-col items-center justify-center bg-red-50 dark:bg-red-500/10 rounded-2xl border border-dashed border-red-200 dark:border-red-500/30">
                     <i class="fa-solid fa-file-circle-exclamation text-4xl text-red-400 mb-3"></i>
-                    <p class="text-sm text-red-600 dark:text-red-400 mb-4 text-center" x-text="t('preview_blocked')"></p>
-                    <a :href="fileInfoModal.file ? '/download/' + fileInfoModal.file.id : '#'" class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-red-500/20 active:scale-95">
+                    <p class="text-sm text-red-600 dark:text-red-400 mb-4 text-center" x-text="t('preview_blocked')">
+                    </p>
+                    <a :href="fileInfoModal.file ? '/download/' + fileInfoModal.file.id : '#'"
+                        class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-red-500/20 active:scale-95">
                         <i class="fa-solid fa-download mr-2"></i><span x-text="t('download')"></span>
                     </a>
                 </div>
             </div>
 
-            <div x-show="fileInfoModal.isPreviewLoading" class="w-full mt-6 mb-4 flex flex-col items-center justify-center py-10">
+            <div x-show="fileInfoModal.isPreviewLoading"
+                class="w-full mt-6 mb-4 flex flex-col items-center justify-center py-10">
                 <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-500 mb-3"></i>
                 <p class="text-sm text-slate-500" x-text="t('loading_preview')"></p>
             </div>
@@ -135,8 +140,7 @@
                 </div>
                 <div class="flex justify-between text-sm">
                     <span class="text-slate-500 dark:text-slate-400" x-text="t('status') + ':'"></span>
-                    <span class="font-semibold text-emerald-600 dark:text-emerald-400"
-                        x-text="t('public')"></span>
+                    <span class="font-semibold text-emerald-600 dark:text-emerald-400" x-text="t('public')"></span>
                 </div>
             </div>
 
@@ -218,17 +222,20 @@
                             <i class="fa-solid fa-circle-xmark text-lg"></i>
                         </button>
                     </div>
-                    <button @click="toggleViewMode()" 
-                            class="p-2.5 px-3 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 bg-white/60 hover:bg-white dark:bg-slate-900/60 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/50 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 shrink-0"
-                            :title="viewMode === 'list' ? 'Grid View' : 'List View'">
-                        <i class="fa-solid text-lg" :class="viewMode === 'list' ? 'fa-table-cells-large' : 'fa-list'"></i>
+                    <button @click="toggleViewMode()"
+                        class="p-2.5 px-3 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 bg-white/60 hover:bg-white dark:bg-slate-900/60 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/50 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 shrink-0"
+                        :title="viewMode === 'list' ? 'Grid View' : 'List View'">
+                        <i class="fa-solid text-lg"
+                            :class="viewMode === 'list' ? 'fa-table-cells-large' : 'fa-list'"></i>
                     </button>
                 </div>
                 <!-- Unified Table Header -->
                 <div x-show="files.length > 0 && !isLoading && viewMode === 'list'"
                     class="grid grid-cols-12 gap-4 px-4 md:px-10 py-3 text-[10px] md:text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-t border-slate-200/50 dark:border-white/5">
-                    <div class="col-span-8 md:col-span-5 flex items-center gap-3 cursor-pointer select-none group" @click="toggleSort('name')">
-                        <input type="checkbox" class="w-4 h-4 accent-blue-600 cursor-pointer rounded" @click.stop @change="
+                    <div class="col-span-8 md:col-span-5 flex items-center gap-3 cursor-pointer select-none group"
+                        @click="toggleSort('name')">
+                        <input type="checkbox" class="w-4 h-4 accent-blue-600 cursor-pointer rounded" @click.stop
+                            @change="
                                 let pageIds = displayedFiles.filter(f => !f.is_folder).map(f => f.id); 
                                 selectedIds = $event.target.checked 
                                     ? [...new Set([...selectedIds, ...pageIds])] 
@@ -236,21 +243,26 @@
                             "
                             :checked="displayedFiles.filter(f => !f.is_folder).length > 0 && displayedFiles.filter(f => !f.is_folder).every(f => selectedIds.includes(f.id))">
                         <span x-text="t('name_placeholder')"></span>
-                        <i class="fa-solid" :class="sortBy === 'name' ? (sortOrder === 'asc' ? 'fa-sort-up text-blue-500' : 'fa-sort-down text-blue-500') : 'fa-sort opacity-0 group-hover:opacity-40 transition-opacity'"></i>
+                        <i class="fa-solid"
+                            :class="sortBy === 'name' ? (sortOrder === 'asc' ? 'fa-sort-up text-blue-500' : 'fa-sort-down text-blue-500') : 'fa-sort opacity-0 group-hover:opacity-40 transition-opacity'"></i>
                     </div>
-                    <div class="col-span-3 hidden md:flex items-center gap-1.5 cursor-pointer select-none group" @click="toggleSort('date')">
+                    <div class="col-span-3 hidden md:flex items-center gap-1.5 cursor-pointer select-none group"
+                        @click="toggleSort('date')">
                         <span x-text="t('date')"></span>
-                        <i class="fa-solid" :class="sortBy === 'date' ? (sortOrder === 'asc' ? 'fa-sort-up text-blue-500' : 'fa-sort-down text-blue-500') : 'fa-sort opacity-0 group-hover:opacity-40 transition-opacity'"></i>
+                        <i class="fa-solid"
+                            :class="sortBy === 'date' ? (sortOrder === 'asc' ? 'fa-sort-up text-blue-500' : 'fa-sort-down text-blue-500') : 'fa-sort opacity-0 group-hover:opacity-40 transition-opacity'"></i>
                     </div>
-                    <div class="col-span-2 hidden md:flex items-center gap-1.5 cursor-pointer select-none group" @click="toggleSort('size')">
+                    <div class="col-span-2 hidden md:flex items-center gap-1.5 cursor-pointer select-none group"
+                        @click="toggleSort('size')">
                         <span x-text="t('size')"></span>
-                        <i class="fa-solid" :class="sortBy === 'size' ? (sortOrder === 'asc' ? 'fa-sort-up text-blue-500' : 'fa-sort-down text-blue-500') : 'fa-sort opacity-0 group-hover:opacity-40 transition-opacity'"></i>
+                        <i class="fa-solid"
+                            :class="sortBy === 'size' ? (sortOrder === 'asc' ? 'fa-sort-up text-blue-500' : 'fa-sort-down text-blue-500') : 'fa-sort opacity-0 group-hover:opacity-40 transition-opacity'"></i>
                     </div>
                     <div class="col-span-4 md:col-span-2 text-right md:text-center" x-text="t('actions')"></div>
                 </div>
             </div>
 
-            <div class="flex-1 min-h-0 overflow-y-auto p-2 md:p-6 md:pt-2 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:pb-6 relative"
+            <div class="flex-1 min-h-0 overflow-y-auto p-2 md:p-6 md:pt-2 pb-4 md:pb-6 relative"
                 @click.self="closeContextMenu">
 
                 <div x-show="currentTab === 'files'" x-transition.opacity>
@@ -265,7 +277,8 @@
 
 
                         <div class="w-full text-left border-collapse relative">
-                            <div class="mt-2 pb-10" :class="viewMode === 'list' ? 'space-y-1.5' : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4 px-1'">
+                            <div class="mt-2 pb-10"
+                                :class="viewMode === 'list' ? 'space-y-1.5' : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4 px-1'">
                                 <template x-for="file in displayedFiles" :key="file.id">
                                     <div class="contents">
                                         <!-- List View Template -->
@@ -274,47 +287,72 @@
                                                 :class="selectedIds.includes(file.id) ? 'bg-blue-50/80 dark:bg-blue-900/20 border-blue-200 dark:border-blue-500/30' : ''"
                                                 @contextmenu.prevent="openContextMenu($event, file)"
                                                 x-transition.opacity.duration.300ms>
-                                                
-                                                <div class="col-span-8 md:col-span-5 flex items-center gap-3 w-full truncate">
+
+                                                <div
+                                                    class="col-span-8 md:col-span-5 flex items-center gap-3 w-full truncate">
                                                     <div class="w-4 h-4 shrink-0 flex items-center justify-center">
-                                                        <input type="checkbox" :value="file.id" x-model.number="selectedIds" x-show="!file.is_folder"
+                                                        <input type="checkbox" :value="file.id"
+                                                            x-model.number="selectedIds" x-show="!file.is_folder"
                                                             class="w-4 h-4 accent-blue-600 cursor-pointer rounded">
                                                     </div>
-                                                        
+
                                                     <div class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl shadow-sm shrink-0 cursor-pointer group-hover:scale-105 transition-transform"
                                                         @click="if(file.is_folder) { navigateToFolder(file.filename) } else { showFileInfo(file) }">
                                                         <template x-if="file.is_folder">
-                                                            <i class="fa-solid fa-folder text-amber-400 text-xl md:text-2xl drop-shadow-sm"></i>
+                                                            <i
+                                                                class="fa-solid fa-folder text-amber-400 text-xl md:text-2xl drop-shadow-sm"></i>
                                                         </template>
                                                         <template x-if="!file.is_folder">
-                                                            <div class="w-full h-full relative flex items-center justify-center">
+                                                            <div
+                                                                class="w-full h-full relative flex items-center justify-center">
                                                                 <template x-if="file.has_thumb">
-                                                                    <img :src="`/s/${shareToken}/file/${file.id}/thumb`" loading="lazy" alt="thumb" class="w-full h-full object-cover rounded-xl shadow-sm">
+                                                                    <img :src="`/s/${shareToken}/file/${file.id}/thumb`"
+                                                                        loading="lazy" alt="thumb"
+                                                                        class="w-full h-full object-cover rounded-xl shadow-sm">
                                                                 </template>
                                                                 <template x-if="!file.has_thumb">
-                                                                    <div x-html="getFileTypeData(file.filename).i" class="scale-75 opacity-80" :class="getFileTypeData(file.filename).c.split(' ')[1]"></div>
+                                                                    <div x-html="getFileTypeData(file.filename).i"
+                                                                        class="scale-75 opacity-80"
+                                                                        :class="getFileTypeData(file.filename).c.split(' ')[1]">
+                                                                    </div>
                                                                 </template>
                                                             </div>
                                                         </template>
                                                     </div>
-                                                    <div class="truncate flex-1 cursor-pointer flex flex-col" @click="if(file.is_folder) { navigateToFolder(file.filename) } else { showFileInfo(file) }">
+                                                    <div class="truncate flex-1 cursor-pointer flex flex-col"
+                                                        @click="if(file.is_folder) { navigateToFolder(file.filename) } else { showFileInfo(file) }">
                                                         <div class="flex items-center gap-2">
-                                                            <p class="text-sm md:text-base font-semibold text-slate-800 dark:text-slate-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" x-text="file.filename"></p>
-                                                            <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 text-[9px] font-bold tracking-wider uppercase">Public</span>
+                                                            <p class="text-sm md:text-base font-semibold text-slate-800 dark:text-slate-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
+                                                                x-text="file.filename"></p>
+                                                            <span
+                                                                class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 text-[9px] font-bold tracking-wider uppercase">Public</span>
                                                         </div>
-                                                        <p class="text-xs text-slate-400 md:hidden mt-0.5" x-text="file.is_folder ? t('folder') : formatBytes(file.size)"></p>
+                                                        <p class="text-xs text-slate-400 md:hidden mt-0.5"
+                                                            x-text="file.is_folder ? t('folder') : formatBytes(file.size)">
+                                                        </p>
                                                     </div>
                                                 </div>
-                                                
-                                                <div class="hidden md:block col-span-3 text-sm font-medium text-slate-500 dark:text-slate-400" x-text="formatDate(file.created_at)"></div>
-                                                <div class="hidden md:block col-span-2 text-sm font-medium text-slate-500 dark:text-slate-400" x-text="file.is_folder ? t('folder') : formatBytes(file.size)"></div>
-                                                
-                                                <div class="col-span-4 md:col-span-2 flex justify-end md:justify-center relative" @click.outside="if (openMenuId === file.id) openMenuId = null">
-                                                    <button @click.stop="openMenuId = openMenuId === file.id ? null : file.id" class="px-3 py-2 text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:outline-none">
+
+                                                <div class="hidden md:block col-span-3 text-sm font-medium text-slate-500 dark:text-slate-400"
+                                                    x-text="formatDate(file.created_at)"></div>
+                                                <div class="hidden md:block col-span-2 text-sm font-medium text-slate-500 dark:text-slate-400"
+                                                    x-text="file.is_folder ? t('folder') : formatBytes(file.size)">
+                                                </div>
+
+                                                <div class="col-span-4 md:col-span-2 flex justify-end md:justify-center relative"
+                                                    @click.outside="if (openMenuId === file.id) openMenuId = null">
+                                                    <button
+                                                        @click.stop="openMenuId = openMenuId === file.id ? null : file.id"
+                                                        class="px-3 py-2 text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:outline-none">
                                                         <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
                                                     </button>
-                                                    <div x-show="openMenuId === file.id" x-cloak x-transition.origin.top.right class="glass-menu absolute right-0 top-10 mt-1 w-52 rounded-2xl p-1.5 z-[60] text-sm text-left">
-                                                        <button @click="startDownload(file.id); openMenuId = null" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium transition-colors"><i class="fa-solid fa-download fa-fw"></i> <span x-text="t('download')"></span></button>
+                                                    <div x-show="openMenuId === file.id" x-cloak
+                                                        x-transition.origin.top.right
+                                                        class="glass-menu absolute right-0 top-10 mt-1 w-52 rounded-2xl p-1.5 z-[60] text-sm text-left">
+                                                        <button @click="startDownload(file.id); openMenuId = null"
+                                                            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium transition-colors"><i
+                                                                class="fa-solid fa-download fa-fw"></i> <span
+                                                                x-text="t('download')"></span></button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -326,46 +364,67 @@
                                                 :class="selectedIds.includes(file.id) ? 'bg-blue-50/80 dark:bg-blue-900/20 border-blue-200 dark:border-blue-500/30 shadow-md scale-[1.02]' : 'shadow-sm bg-white/40 dark:bg-slate-800/30 border-slate-200/50 dark:border-slate-700/50'"
                                                 @contextmenu.prevent="openContextMenu($event, file)"
                                                 x-transition.opacity.duration.300ms>
-                                        
-                                                <div class="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity" :class="selectedIds.includes(file.id) ? '!opacity-100' : ''">
-                                                    <input type="checkbox" :value="file.id" x-model.number="selectedIds" x-show="!file.is_folder" class="w-4 h-4 accent-blue-600 cursor-pointer rounded">
+
+                                                <div class="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    :class="selectedIds.includes(file.id) ? '!opacity-100' : ''">
+                                                    <input type="checkbox" :value="file.id" x-model.number="selectedIds"
+                                                        x-show="!file.is_folder"
+                                                        class="w-4 h-4 accent-blue-600 cursor-pointer rounded">
                                                 </div>
-                                                
-                                                <div class="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity" :class="openMenuId === file.id ? '!opacity-100' : ''"
+
+                                                <div class="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    :class="openMenuId === file.id ? '!opacity-100' : ''"
                                                     @click.outside="if (openMenuId === file.id) openMenuId = null">
-                                                    <button @click.stop="openMenuId = openMenuId === file.id ? null : file.id"
+                                                    <button
+                                                        @click.stop="openMenuId = openMenuId === file.id ? null : file.id"
                                                         class="p-1.5 text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-colors focus:outline-none">
                                                         <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
                                                     </button>
-                                                    <div x-show="openMenuId === file.id" x-cloak x-transition.origin.top.right class="glass-menu absolute right-0 top-8 mt-1 w-52 rounded-2xl p-1.5 z-[60] text-sm text-left">
-                                                        <button @click="startDownload(file.id); openMenuId = null" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium transition-colors"><i class="fa-solid fa-download fa-fw"></i> <span x-text="t('download')"></span></button>
+                                                    <div x-show="openMenuId === file.id" x-cloak
+                                                        x-transition.origin.top.right
+                                                        class="glass-menu absolute right-0 top-8 mt-1 w-52 rounded-2xl p-1.5 z-[60] text-sm text-left">
+                                                        <button @click="startDownload(file.id); openMenuId = null"
+                                                            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium transition-colors"><i
+                                                                class="fa-solid fa-download fa-fw"></i> <span
+                                                                x-text="t('download')"></span></button>
                                                     </div>
                                                 </div>
-                                        
+
                                                 <div class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-sm shrink-0 cursor-pointer group-hover:scale-105 transition-transform mt-3"
                                                     @click="if(file.is_folder) { navigateToFolder(file.filename) } else { showFileInfo(file) }">
                                                     <template x-if="file.is_folder">
-                                                        <i class="fa-solid fa-folder text-amber-400 text-4xl md:text-5xl drop-shadow-sm"></i>
+                                                        <i
+                                                            class="fa-solid fa-folder text-amber-400 text-4xl md:text-5xl drop-shadow-sm"></i>
                                                     </template>
                                                     <template x-if="!file.is_folder">
-                                                        <div class="w-full h-full relative flex items-center justify-center">
+                                                        <div
+                                                            class="w-full h-full relative flex items-center justify-center">
                                                             <template x-if="file.has_thumb">
-                                                                <img :src="`/s/${shareToken}/file/${file.id}/thumb`" loading="lazy" alt="thumb" class="w-full h-full object-cover rounded-2xl shadow-sm">
+                                                                <img :src="`/s/${shareToken}/file/${file.id}/thumb`"
+                                                                    loading="lazy" alt="thumb"
+                                                                    class="w-full h-full object-cover rounded-2xl shadow-sm">
                                                             </template>
                                                             <template x-if="!file.has_thumb">
-                                                                <div x-html="getFileTypeData(file.filename).i" class="scale-[1.5] md:scale-[2] opacity-80" :class="getFileTypeData(file.filename).c.split(' ')[1]"></div>
+                                                                <div x-html="getFileTypeData(file.filename).i"
+                                                                    class="scale-[1.5] md:scale-[2] opacity-80"
+                                                                    :class="getFileTypeData(file.filename).c.split(' ')[1]">
+                                                                </div>
                                                             </template>
                                                         </div>
                                                     </template>
                                                 </div>
-                                        
+
                                                 <div class="w-full flex flex-col items-center gap-1 px-1 cursor-pointer"
                                                     @click="if(file.is_folder) { navigateToFolder(file.filename) } else { showFileInfo(file) }">
-                                                    <p class="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate w-full group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" x-text="file.filename" :title="file.filename"></p>
-                                                    <p class="text-[10px] md:text-xs text-slate-400 font-medium" x-text="file.is_folder ? t('folder') : formatBytes(file.size)"></p>
+                                                    <p class="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate w-full group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
+                                                        x-text="file.filename" :title="file.filename"></p>
+                                                    <p class="text-[10px] md:text-xs text-slate-400 font-medium"
+                                                        x-text="file.is_folder ? t('folder') : formatBytes(file.size)">
+                                                    </p>
                                                 </div>
-                                                
-                                                <span class="absolute bottom-2 right-2 px-1.5 py-0.5 rounded border border-emerald-500/20 bg-emerald-500/10 text-emerald-500 text-[8px] font-bold uppercase tracking-wider">Public</span>
+
+                                                <span
+                                                    class="absolute bottom-2 right-2 px-1.5 py-0.5 rounded border border-emerald-500/20 bg-emerald-500/10 text-emerald-500 text-[8px] font-bold uppercase tracking-wider">Public</span>
                                             </div>
                                         </template>
                                     </div>
@@ -446,7 +505,7 @@
                 </div>
             </div>
             <footer
-                class="hidden md:flex items-center justify-between p-3 px-6 border-t border-slate-200 dark:border-white/5 bg-white/20 dark:bg-slate-900/20 text-xs text-slate-500 dark:text-slate-400 mt-auto shrink-0">
+                class="flex flex-col md:flex-row items-center justify-between p-3 px-6 border-t border-slate-200 dark:border-white/5 bg-white/20 dark:bg-slate-900/20 text-xs text-slate-500 dark:text-slate-400 mt-auto shrink-0 gap-3 md:gap-0 pb-[calc(1rem+env(safe-area-inset-bottom))] md:pb-3">
                 <div class="flex items-center gap-4">
                     <div class="flex items-center gap-1.5">
                         <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
@@ -456,12 +515,15 @@
                     <span x-text="files.length + ' ' + t('items_count')"></span>
                 </div>
 
-                <div class="flex items-center gap-6">
-                    <div class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-hard-drive"></i>
-                        <span><span x-text="t('capacity') + ':'"></span> <span
-                                class="text-slate-700 dark:text-slate-300 font-semibold"
-                                x-text="t('unlimited')"></span></span>
+                <div class="flex flex-wrap justify-center items-center gap-4 md:gap-6">
+                    <div
+                        class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700/50">
+                        <i class="fa-solid fa-hard-drive text-blue-500"></i>
+                        <span
+                            class="font-medium text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                            x-text="t('storage_used_here')"></span>
+                        <span class="text-slate-700 dark:text-slate-200 font-bold"
+                            x-text="formatBytes(files.reduce((acc, f) => acc + (f.size || 0), 0))"></span>
                     </div>
                     <div class="flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition-colors">
                         <a href="https://github.com/dabeecao/telecloud-go" target="_blank"
@@ -478,18 +540,7 @@
         </main>
     </div>
 
-    <nav
-        class="md:hidden fixed bottom-0 left-0 w-full glass-menu z-50 border-t border-slate-200 dark:border-white/10 pb-safe rounded-t-[2rem]">
-        <div class="flex justify-around items-center p-2 relative">
 
-            <button @click="navigateTo('/'); currentTab = 'files'"
-                class="flex-1 flex flex-col items-center gap-1.5 py-2 transition-colors"
-                :class="currentTab === 'files' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'">
-                <i class="fa-solid fa-house text-xl"></i><span class="text-[10px] font-semibold"
-                    x-text="t('home')"></span>
-            </button>
-
-    </nav>
 
     <div x-show="selectedIds.length > 0" x-cloak
         class="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-8 left-1/2 -translate-x-1/2 glass-menu px-3 py-3 rounded-full shadow-[0_20px_40px_rgba(0,0,0,0.2)] dark:shadow-[0_20px_40px_rgba(0,0,0,0.8)] flex items-center gap-2 md:gap-6 z-[55] md:z-50 border border-slate-200 dark:border-slate-700/50"
@@ -544,10 +595,10 @@
         </div>
     </div>
 
-    
-                </template>
-            </div>
-        </div>
+
+    </template>
+    </div>
+    </div>
     </div>
 
 </body>

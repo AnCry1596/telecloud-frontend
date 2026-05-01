@@ -214,7 +214,8 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, sto
                                 progress: task.percent,
                                 statusText: task.status,
                                 hasError: task.status === 'error',
-                                isCancelled: false
+                                isCancelled: false,
+                                size: task.size || 0
                             });
                         }
                     }
@@ -575,7 +576,13 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, sto
                     let task = this.uploadQueue.find(t => t.id === data.task_id);
                     if (task) {
                         if (task.isCancelled) return;
-                        if (data.status === 'uploading_to_server') {
+                        if (data.size && data.size > 0 && (!task.size || task.size === 0)) {
+                            task.size = data.size;
+                        }
+                        if (data.status === 'downloading') {
+                            task.statusText = data.message ? this.t(data.message) : this.t('starting');
+                            task.hasError = false;
+                        } else if (data.status === 'uploading_to_server') {
                             // Let the client handle the first 50% of progress to avoid jumping during parallel uploads
                             if (!task.hasError) {
                                 task.statusText = data.message || task.statusText;
@@ -842,10 +849,28 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, sto
                 return;
             }
             this.remoteUploadModal = false;
+            
+            const taskId = 'task_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+            
+            // Push to queue immediately to catch fast WebSocket events
+            this.uploadQueue.push({
+                id: taskId,
+                name: 'URL: ' + (this.remoteUrl.split('/').pop() || this.remoteUrl),
+                progress: 0,
+                statusText: this.t('preparing_upload'),
+                isCancelled: false,
+                hasError: false,
+                size: 0
+            });
+
             let fd = new FormData();
             fd.append('url', this.remoteUrl);
             fd.append('path', this.currentPath);
             fd.append('overwrite', this.remoteOverwrite);
+            fd.append('task_id', taskId);
+            
+            const originalUrl = this.remoteUrl;
+            this.remoteUrl = '';
             
             try {
                 let res = await fetch('/api/remote-upload', { 
@@ -854,22 +879,16 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, sto
                     headers: { 'X-CSRF-Token': TeleCloud.getCsrfToken() } 
                 });
                 if (res.ok) {
-                    let d = await res.json();
-                    this.uploadQueue.push({
-                        id: d.task_id,
-                        name: 'URL: ' + (this.remoteUrl.split('/').pop() || this.remoteUrl),
-                        progress: 0,
-                        statusText: this.t('preparing_upload'),
-                        isCancelled: false,
-                        hasError: false
-                    });
-                    this.remoteUrl = '';
                     this.showToast(this.t('toast_dl_started'), 'success');
                 } else {
                     let d = await res.json();
+                    // Remove from queue since it failed to start
+                    this.uploadQueue = this.uploadQueue.filter(t => t.id !== taskId);
                     this.showToast(this.handleCommonError(d.error, 'status_error'), 'error');
                 }
             } catch (e) {
+                // Remove from queue since it failed to start
+                this.uploadQueue = this.uploadQueue.filter(t => t.id !== taskId);
                 this.showToast(this.t('conn_error'), 'error');
             }
         },
@@ -893,7 +912,8 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, sto
                     isCancelled: false,
                     file: file,
                     hasError: false,
-                    targetPath: this.currentPath
+                    targetPath: this.currentPath,
+                    size: file.size
                 };
                 
                 if (this.maxUploadSizeMB > 0 && file.size > maxSizeBytes) {
