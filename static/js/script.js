@@ -736,6 +736,7 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, sto
                     throw new Error(result.error || this.t('err_passkey_auth_failed'));
                 }
             } catch (err) {
+                if (err.name === 'AbortError' || err.name === 'NotAllowedError') return;
                 console.error(err);
                 this.showToast(this.t('passkey_error') + ': ' + err.message, 'error');
             }
@@ -1147,6 +1148,7 @@ function cloudApp(initialIsLoggedIn, initialMaxUploadSizeMB, isAdmin = true, sto
                     throw new Error(result.error || this.t('err_passkey_reg_failed'));
                 }
             } catch (err) {
+                if (err.name === 'AbortError' || err.name === 'NotAllowedError') return;
                 console.error(err);
                 this.showToast(this.t('passkey_error') + ': ' + err.message, 'error');
             }
