@@ -144,6 +144,11 @@
                 </div>
             </div>
 
+            <p class="text-center text-[10px] text-slate-400 dark:text-slate-500 mt-4 flex items-center justify-center gap-1.5 opacity-70">
+                <i class="fa-solid fa-shield-halved text-emerald-500 text-xs"></i>
+                <span x-text="t('safe_msg')"></span>
+            </p>
+
             <div class="mt-4 flex flex-col gap-1.5">
                 <button @click="startDownload(fileInfoModal.file?.id); closeFileInfoModal()"
                     class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium shadow-lg shadow-blue-500/25 transition-transform active:scale-95">
@@ -157,7 +162,7 @@
         <main class="flex-1 flex flex-col h-full min-h-0 glass-panel md:rounded-[2rem] relative overflow-hidden"
             @contextmenu.prevent="if(event.target === $el) openContextMenu(event, null)">
             <header
-                class="flex items-center justify-between p-3 md:px-6 md:py-4 border-b border-slate-200 dark:border-white/5 bg-white/30 dark:bg-slate-900/30 gap-4 shrink-0">
+                class="flex items-center justify-between p-3 md:px-6 md:py-4 border-b border-slate-200 dark:border-white/5 bg-white/30 dark:bg-slate-900/30 gap-4 shrink-0 relative z-[200]">
                 <div class="flex items-center gap-4">
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-cloud text-blue-600 dark:text-blue-400 text-2xl"></i>
@@ -166,14 +171,14 @@
                 </div>
                 <div class="flex items-center gap-2 sm:gap-3 shrink-0">
                     <!-- Language Dropdown -->
-                    <div class="relative" x-data="{ open: false }">
+                    <div class="relative z-[110]" x-data="{ open: false }">
                         <button @click="open = !open" @click.outside="open = false"
                             class="h-9 sm:h-10 px-2 sm:px-3 flex items-center gap-2 text-slate-500 hover:text-blue-500 bg-white/50 dark:bg-slate-800/50 rounded-xl border border-transparent hover:border-blue-100 dark:hover:border-blue-900 transition-colors">
                             <i class="fa-solid fa-earth-americas text-base sm:text-lg"></i>
                             <span class="text-xs sm:text-sm font-bold uppercase" x-text="lang"></span>
                         </button>
                         <div x-show="open" x-cloak
-                            class="absolute top-12 right-0 w-36 glass-menu rounded-xl shadow-xl border border-white/20 p-1.5 z-[100]"
+                            class="absolute top-12 right-0 w-36 glass-menu rounded-xl shadow-xl border border-white/20 p-1.5 z-[1000]"
                             x-transition:enter="transition ease-out duration-100"
                             x-transition:enter-start="transform opacity-0 scale-95"
                             x-transition:enter-end="transform opacity-100 scale-100">

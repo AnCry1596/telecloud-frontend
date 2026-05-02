@@ -57,7 +57,7 @@
         
         <main id="main-card" class="w-full max-w-lg glass-panel rounded-[2.5rem] p-6 sm:p-10 animate-fade-in-up transition-all duration-500">
             
-            <div class="flex items-center justify-between mb-8 opacity-80">
+            <div class="flex items-center justify-between mb-8 opacity-80 relative z-[200]">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
                         <i class="fa-solid fa-cloud text-xl text-white"></i>
@@ -65,14 +65,14 @@
                     <h1 class="text-xl font-bold tracking-tight text-slate-800 dark:text-white">TeleCloud</h1>
                 </div>
                 <!-- Language Dropdown -->
-                <div class="relative" x-data="{ open: false }">
+                <div class="relative z-[110]" x-data="{ open: false }">
                     <button @click="open = !open" @click.outside="open = false"
                         class="h-9 px-2.5 flex items-center gap-1.5 text-slate-500 hover:text-blue-500 bg-white/50 dark:bg-slate-800/50 rounded-xl transition-colors shadow-sm border border-slate-200 dark:border-slate-700/50">
                         <i class="fa-solid fa-earth-americas text-base"></i>
                         <span class="text-xs font-bold uppercase" x-text="lang"></span>
                     </button>
                     <div x-show="open" x-cloak
-                        class="absolute top-11 right-0 w-32 glass-menu rounded-xl shadow-xl border border-white/20 p-1 z-[100]"
+                        class="absolute top-11 right-0 w-32 glass-menu rounded-xl shadow-xl border border-white/20 p-1 z-[1000]"
                         x-transition:enter="transition ease-out duration-100"
                         x-transition:enter-start="transform opacity-0 scale-95"
                         x-transition:enter-end="transform opacity-100 scale-100">
