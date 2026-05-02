@@ -614,8 +614,23 @@ function cloudApp(initialIsLoggedIn, isAdmin = true, storageUsed = 0, webdavEnab
                             task.progress = 50;
                         }
 
-                        if (data.status === 'telegram' || data.status === 'done') {
+                        if (data.status === 'telegram' || data.status === 'done' || data.status === 'downloading') {
                             task.progress = 50 + Math.round(data.percent / 2);
+                            if (data.uploaded_bytes && data.uploaded_bytes > 0) {
+                                // Reset startTime when phase changes to get accurate phase speed
+                                if (data.status === 'telegram' && task.statusText === this.t('pushing_to_tg')) {
+                                     task.startTime = Date.now();
+                                     task.uploadedBytes = 0;
+                                }
+                                
+                                task.uploadedBytes = data.uploaded_bytes;
+                                if (task.startTime) {
+                                    const elapsed = (Date.now() - task.startTime) / 1000;
+                                    if (elapsed > 0) {
+                                        task.speed = task.uploadedBytes / elapsed;
+                                    }
+                                }
+                            }
                         }
 
                         if (data.status === 'done') {
@@ -921,7 +936,10 @@ function cloudApp(initialIsLoggedIn, isAdmin = true, storageUsed = 0, webdavEnab
             
             for (let i = 0; i < fileList.length; i++) {
                 const file = fileList[i];
-                const taskId = 'task_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+                // Create a stable task ID based on file metadata to support resuming
+                const fileIdStr = `${file.name}_${file.size}_${file.lastModified}`;
+                // Safely handle Unicode characters (like Vietnamese) for btoa
+                const taskId = 'task_' + btoa(unescape(encodeURIComponent(fileIdStr))).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
                 const task = { 
                     id: taskId, 
                     name: file.name, 
@@ -931,7 +949,10 @@ function cloudApp(initialIsLoggedIn, isAdmin = true, storageUsed = 0, webdavEnab
                     file: file,
                     hasError: false,
                     targetPath: this.currentPath,
-                    size: file.size
+                    size: file.size,
+                    speed: 0,
+                    uploadedBytes: 0,
+                    startTime: null
                 };
                 
                 newTasks.push(task);
@@ -977,15 +998,47 @@ function cloudApp(initialIsLoggedIn, isAdmin = true, storageUsed = 0, webdavEnab
             let hasError = false;
             let uploadedChunks = 0;
 
+            // Check if server already has some chunks for this task
+            let existingChunks = [];
+            try {
+                const checkRes = await fetch(`/api/upload/check/${taskId}`);
+                if (checkRes.ok) {
+                    const checkData = await checkRes.json();
+                    existingChunks = checkData.chunks || [];
+                    uploadedChunks = existingChunks.length;
+                    const task = this.uploadQueue.find(t => t.id === taskId);
+                    if (task && uploadedChunks > 0) {
+                        task.progress = Math.round((uploadedChunks / totalChunks) * 50);
+                        task.uploadedBytes = uploadedChunks * CHUNK_SIZE;
+                    }
+                }
+            } catch (e) {
+                console.error("Resume check failed:", e);
+            }
+
+            const task = this.uploadQueue.find(t => t.id === taskId);
+            if (task) task.startTime = Date.now();
+
             // Worker pool for parallel chunks
             const CHUNK_CONCURRENCY = 3;
-            const chunkQueue = Array.from({ length: totalChunks }, (_, i) => i);
+            const chunkQueue = Array.from({ length: totalChunks }, (_, i) => i)
+                                    .filter(i => !existingChunks.includes(i));
+            
+            if (chunkQueue.length === 0 && totalChunks > 0) {
+                // All chunks already uploaded
+                const task = this.uploadQueue.find(t => t.id === taskId);
+                if (task) {
+                    task.progress = 50;
+                    task.statusText = this.t('syncing_tg');
+                }
+                return;
+            }
             
             const uploadWorker = async () => {
                 while (chunkQueue.length > 0 && !hasError) {
                     const chunkIndex = chunkQueue.shift();
                     let taskObj = this.uploadQueue.find(t => t.id === taskId);
-                    if (taskObj && taskObj.isCancelled) break;
+                    if (!taskObj || taskObj.isCancelled) break;
 
                     const start = chunkIndex * CHUNK_SIZE;
                     const end = Math.min(start + CHUNK_SIZE, file.size);
@@ -1013,7 +1066,16 @@ function cloudApp(initialIsLoggedIn, isAdmin = true, storageUsed = 0, webdavEnab
                             const result = await response.json();
                             
                             uploadedChunks++;
-                            if (task) task.progress = Math.round((uploadedChunks / totalChunks) * 50);
+                            if (task) {
+                                task.uploadedBytes += chunk.size;
+                                const elapsed = (Date.now() - task.startTime) / 1000;
+                                if (elapsed > 0) {
+                                    // Use a bit of weighted average for smoother speed
+                                    const currentSpeed = (task.uploadedBytes - (existingChunks.length * CHUNK_SIZE)) / elapsed;
+                                    task.speed = currentSpeed;
+                                }
+                                task.progress = Math.round((uploadedChunks / totalChunks) * 50);
+                            }
                             
                             if (result.status === "processing_telegram") {
                                 if (task) task.statusText = this.t('syncing_tg');
