@@ -336,8 +336,11 @@ function cloudApp(initialIsLoggedIn, isAdmin = true, storageUsed = 0, webdavEnab
             await this.saveWebAuthnSettings();
         },
 
-        toggleLang() { 
-            this.lang = TeleCloud.toggleLang();
+        async toggleLang() { 
+            this.lang = await TeleCloud.toggleLang();
+        },
+        async setLang(code) {
+            this.lang = await TeleCloud.setLang(code);
         },
         formatBytes(b, d) { return TeleCloud.formatBytes(b, d); },
         formatDate(d) { return TeleCloud.formatDate(d, this.lang); },
@@ -490,6 +493,13 @@ function cloudApp(initialIsLoggedIn, isAdmin = true, storageUsed = 0, webdavEnab
         modal: { show: false, type: 'alert', title: '', message: '', input: '', resolve: null, isDanger: false, inputType: 'text' },
         contextMenu: { show: false, x: 0, y: 0, file: null },
         init() { 
+            window.addEventListener('tc-translations-loaded', (e) => {
+                if (e.detail.lang === this.lang) {
+                    const l = this.lang;
+                    this.lang = '';
+                    this.$nextTick(() => { this.lang = l; });
+                }
+            });
             if (this.isLoggedIn) {
                 this.fetchFiles(false);
                 this.checkUpdate();
@@ -1331,8 +1341,11 @@ function shareApp(shareToken) {
         formatDate(d) { return TeleCloud.formatDate(d, this.lang); },
         getFileTypeData(f) { return TeleCloud.getFileTypeData(f); },
         parseMarkdown(t) { return TeleCloud.parseMarkdown(t); },
-        toggleLang() { 
-            this.lang = TeleCloud.toggleLang();
+        async toggleLang() { 
+            this.lang = await TeleCloud.toggleLang();
+        },
+        async setLang(code) {
+            this.lang = await TeleCloud.setLang(code);
         },
         
         startDownload(fileId) {

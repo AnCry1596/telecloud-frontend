@@ -15,13 +15,35 @@
 
 <body
     class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 min-h-screen flex items-center justify-center p-4 relative"
-    x-data="{ lang: TeleCloud.lang, t(key) { return TeleCloud.t(key, {}, this.lang); }, toggleLang() { this.lang = TeleCloud.toggleLang(); } }">
+    x-data="{ 
+        lang: TeleCloud.lang, 
+        t(key) { return TeleCloud.t(key, {}, this.lang); }, 
+        async toggleLang() { this.lang = await TeleCloud.toggleLang(); },
+        async setLang(code) { this.lang = await TeleCloud.setLang(code); }
+    }">
 
-    <button @click="toggleLang"
-        class="absolute top-6 right-6 h-10 px-3 flex items-center gap-2 text-slate-500 hover:text-blue-500 bg-white/50 dark:bg-slate-800/50 rounded-xl border border-transparent hover:border-blue-100 dark:hover:border-blue-900 transition-colors shadow-sm">
-        <i class="fa-solid fa-earth-americas text-lg"></i>
-        <span class="text-sm font-bold uppercase" x-text="lang"></span>
-    </button>
+    <!-- Language Dropdown -->
+    <div class="absolute top-6 right-6" x-data="{ open: false }">
+        <button @click="open = !open" @click.outside="open = false"
+            class="h-10 px-3 flex items-center gap-2 text-slate-500 hover:text-blue-500 bg-white/50 dark:bg-slate-800/50 rounded-xl border border-transparent hover:border-blue-100 dark:hover:border-blue-900 transition-colors shadow-sm">
+            <i class="fa-solid fa-earth-americas text-lg"></i>
+            <span class="text-sm font-bold uppercase" x-text="lang"></span>
+        </button>
+        <div x-show="open" x-cloak
+            class="absolute top-12 right-0 w-32 glass-menu rounded-xl shadow-xl border border-white/20 p-1 z-[100]"
+            x-transition:enter="transition ease-out duration-100"
+            x-transition:enter-start="transform opacity-0 scale-95"
+            x-transition:enter-end="transform opacity-100 scale-100">
+            <template x-for="l in TeleCloud.availableLangs" :key="l.code">
+                <button @click="setLang(l.code); open = false"
+                    class="w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-between"
+                    :class="lang === l.code ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'">
+                    <span x-text="l.name"></span>
+                    <span x-text="l.flag"></span>
+                </button>
+            </template>
+        </div>
+    </div>
 
     <div class="blob-1"></div>
     <div class="blob-2"></div>
