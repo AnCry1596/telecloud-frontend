@@ -3,8 +3,7 @@
  */
 
 const TeleCloud = {
-    version: 'dev',
-    lang: localStorage.getItem('lang') || (navigator.language.startsWith('vi') ? 'vi' : 'en'),
+    version: window.TELECLOUD_VERSION || 'dev',
     availableLangs: [
         { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
         { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -15,12 +14,17 @@ const TeleCloud = {
         { code: 'zh', name: '简体中文', flag: '🇨🇳' },
         { code: 'ja', name: '日本語', flag: '🇯🇵' }
     ],
+    lang: localStorage.getItem('lang') || (function () {
+        const browserLang = navigator.language.split('-')[0];
+        const supported = ['vi', 'en', 'km', 'ar', 'hi', 'ru', 'zh', 'ja'];
+        return supported.includes(browserLang) ? browserLang : 'en';
+    })(),
     translations: {},
 
     async loadTranslations(lang) {
         if (this.translations[lang]) return;
         try {
-            const response = await fetch(`/static/locales/${lang}.json?v=${this.version}`);
+            const response = await fetch(`/static/locales/${lang}.min.json?v=${this.version}`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             this.translations[lang] = await response.json();
             window.dispatchEvent(new CustomEvent('tc-translations-loaded', { detail: { lang } }));

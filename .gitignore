@@ -13,6 +13,7 @@ node_modules/
 # --- Build artifacts & External Libraries ---
 static/css/*.min.css
 static/js/*.min.js
+static/locales/*.min.json
 static/css/tailwind.css
 
 # Plyr and Prism
