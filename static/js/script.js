@@ -23,34 +23,14 @@ function cloudApp(initialIsLoggedIn, isAdmin = true, storageUsed = 0, webdavEnab
         currentTheme: initialTheme || 'system',
         setTheme(theme) {
             this.currentTheme = theme;
-            this.applyTheme();
+            TeleCloud.applyTheme(theme);
             // Save to database
             let fd = new FormData();
             fd.append('theme', theme);
             fetch('/api/settings/user/theme', { method: 'POST', body: fd, headers: { 'X-CSRF-Token': TeleCloud.getCsrfToken() } }).catch(e => console.error("Theme save failed:", e));
         },
         applyTheme() {
-            const theme = this.currentTheme || 'system';
-            const html = document.documentElement;
-            
-            if (theme === 'system') {
-                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    html.classList.add('dark');
-                } else {
-                    html.classList.remove('dark');
-                }
-            } else {
-                // For custom themes, we decide whether to add 'dark' class based on the theme style
-                const darkThemes = ['neon', 'cyberpunk', 'lavender', 'forest'];
-                if (darkThemes.includes(theme)) {
-                    html.classList.add('dark');
-                } else {
-                    html.classList.remove('dark');
-                }
-            }
-            
-            // Re-trigger alpine to update data-theme attribute if not reactive enough
-            // (but index.html uses :data-theme="currentTheme" so it should be fine)
+            TeleCloud.applyTheme(this.currentTheme);
         },
         get filteredYTDLPFormats() {
             if (!this.ytdlpInfo || !this.ytdlpInfo.formats) return [];
@@ -86,6 +66,7 @@ function cloudApp(initialIsLoggedIn, isAdmin = true, storageUsed = 0, webdavEnab
             });
         },
         formatQualityLabel(f) {
+            if (!f) return '';
             let label = '';
             if (f.height && f.height > 0) {
                 label = f.height + 'p';
@@ -98,12 +79,14 @@ function cloudApp(initialIsLoggedIn, isAdmin = true, storageUsed = 0, webdavEnab
                 else if (note === 'tiny') label = this.t('quality_tiny');
                 else if (note === 'ultralow') label = this.t('quality_ultralow');
                 else label = f.format_note.charAt(0).toUpperCase() + f.format_note.slice(1);
-            } else {
+            } else if (f.ext) {
                 label = f.ext.toUpperCase();
+            } else {
+                label = 'Unknown';
             }
             
             // Standardize format display
-            let ext = f.ext.toUpperCase();
+            let ext = (f.ext || '').toUpperCase();
             if (this.ytdlpDownloadType === 'video') {
                 // We force MP4 merger in backend for best compatibility
                 ext = 'MP4';
@@ -115,7 +98,7 @@ function cloudApp(initialIsLoggedIn, isAdmin = true, storageUsed = 0, webdavEnab
             let size = '';
             const totalSize = f.filesize || f.filesize_approx;
             if (totalSize) size = ' - ' + this.formatBytes(totalSize);
-            return `${label} (${ext})${size}`;
+            return `${label}${ext ? ' (' + ext + ')' : ''}${size}`;
         },
         webauthnRPID: webauthnRPID,
         webauthnOrigins: webauthnOrigins,
@@ -610,10 +593,7 @@ function cloudApp(initialIsLoggedIn, isAdmin = true, storageUsed = 0, webdavEnab
             });
 
             // Always apply theme (will be 'system' for non-logged-in users)
-            this.applyTheme();
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-                if (this.currentTheme === 'system') this.applyTheme();
-            });
+            TeleCloud.initTheme(this.currentTheme);
 
             if (this.isLoggedIn) {
                 this.fetchFiles(false);
@@ -1805,18 +1785,7 @@ function shareApp(shareToken) {
                 this.lang = '';
                 this.$nextTick(() => { this.lang = e.detail.lang; });
             });
-
-            // Handle system dark mode since Tailwind is in 'class' mode
-            const applySystemTheme = () => {
-                const html = document.documentElement;
-                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    html.classList.add('dark');
-                } else {
-                    html.classList.remove('dark');
-                }
-            };
-            applySystemTheme();
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applySystemTheme);
+            TeleCloud.initTheme('system');
 
             this.fetchFiles(false);
         },
