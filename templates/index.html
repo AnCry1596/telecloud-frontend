@@ -1288,7 +1288,7 @@
                                         <div
                                             class="relative group aspect-video rounded-2xl overflow-hidden bg-slate-900 shadow-2xl border border-white/5">
                                             <template x-if="ytdlpInfo?.thumbnail">
-                                                <img :src="ytdlpInfo.thumbnail" class="w-full h-full object-cover">
+                                                <img :src="'/api/proxy/image?url=' + encodeURIComponent(ytdlpInfo.thumbnail)" class="w-full h-full object-cover">
                                             </template>
                                             <div
                                                 class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-4">
