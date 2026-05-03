@@ -5,6 +5,19 @@ const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+function minifyLocales() {
+  const localesDir = './static/locales';
+  const files = fs.readdirSync(localesDir);
+  for (const file of files) {
+    if (file.endsWith('.json') && !file.endsWith('.min.json')) {
+      const filePath = path.join(localesDir, file);
+      const minPath = path.join(localesDir, file.replace('.json', '.min.json'));
+      const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      fs.writeFileSync(minPath, JSON.stringify(content));
+    }
+  }
+}
+
 async function main() {
   const errors = [];
 
@@ -20,7 +33,7 @@ async function main() {
   function buildTailwind() {
     return new Promise((resolve, reject) => {
       execFile('npx', ['@tailwindcss/cli', '-i', 'static/css/input.css', '-o', 'static/css/tailwind.css', '--minify'],
-        { stdio: 'inherit', shell: true },
+        { stdio: 'inherit', shell: process.platform === 'win32' },
         (err) => err ? reject(err) : resolve()
       );
     });
@@ -61,6 +74,7 @@ async function main() {
 
   const tasks = [
     wrap('tailwind', buildTailwind),
+    wrap('locales', () => Promise.resolve(minifyLocales())),
     ...allBuilds.map(({ in: entryPoint, out: outfile, bundle }) =>
       wrap(outfile, () => esbuild.build({
         entryPoints: [entryPoint],

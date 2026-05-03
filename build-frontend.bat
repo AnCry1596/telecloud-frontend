@@ -51,14 +51,11 @@ for %%l in (json javascript python go bash yaml sql) do (
   curl -sSL https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-%%l.min.js >> static/js/prism.js
 )
 
-echo Minifying JS, CSS, and themes...
+echo Minifying JS, CSS, locales, and themes...
 call node build.js
 if errorlevel 1 (
     echo Build failed. See errors above.
     exit /b 1
 )
-
-echo Minifying JSON locales...
-node minify-locales.js
 
 echo Frontend build complete!
